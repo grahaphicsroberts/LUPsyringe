@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lupron Depot Syringe - True Ambient Occlusion</title>
+    <title>Lupron Depot Syringe - Micro World & Nav Fix</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -31,7 +31,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            /* Slightly lighter center for better contrast with new AO */
             background: radial-gradient(circle at center, #ffffff 20%, #ededed 100%);
         }
 
@@ -51,6 +50,7 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.04);
             width: 80%;
             max-width: 650px;
+            transition: all 0.5s ease;
         }
         .viewport-header h2 {
             margin: 0 0 8px 0;
@@ -70,6 +70,64 @@
             height: 100%;
             display: block;
             outline: none;
+        }
+
+        /* --- Global Dot Navigation --- */
+        .scroll-nav {
+            position: fixed;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 28px; 
+            z-index: 50;
+        }
+        .nav-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px; 
+        }
+        .nav-label {
+            font-size: 10px;
+            font-weight: 800;
+            color: #6a1c3a;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.5;
+            margin-bottom: 2px;
+        }
+        .nav-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(106, 28, 58, 0.25);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            position: relative;
+        }
+        .nav-dot:hover {
+            background: rgba(106, 28, 58, 0.6);
+            transform: scale(1.2);
+        }
+        .nav-dot.active {
+            background: rgba(106, 28, 58, 1);
+            transform: scale(1.6);
+        }
+
+        /* Specific styles for the Micro section dots */
+        .micro-section .nav-label {
+            color: #ff6600;
+        }
+        .micro-section .nav-dot {
+            background: rgba(255, 102, 0, 0.25); /* #ff6600 */
+        }
+        .micro-section .nav-dot:hover {
+            background: rgba(255, 102, 0, 0.6);
+        }
+        .micro-section .nav-dot.active {
+            background: rgba(255, 102, 0, 1);
         }
 
         /* --- 2D Annotations (Story Steps) --- */
@@ -95,13 +153,12 @@
             font-size: 15px; 
         }
         
-        /* Adjusted to stay in the negative space while model is centered */
-        #anno-needle { top: 30%; right: 15%; }
-        #anno-safety { top: 35%; left: 15%; }
-        #anno-microspheres { top: 40%; right: 15%; }
-        #anno-diluent { top: 50%; left: 15%; }
-        #anno-dual { top: 45%; right: 15%; }
-        #anno-plunger { bottom: 25%; right: 15%; }
+        #anno-needle { top: 35%; right: 35%; }
+        #anno-safety { top: 25%; left: 25%; }
+        #anno-microspheres { top: 38%; right: 28%; }
+        #anno-diluent { top: 55%; left: 28%; }
+        #anno-dual { top: 48%; right: 22%; }
+        #anno-plunger { bottom: 15%; right: 25%; }
 
         /* --- Schematic Labels & Leader Lines --- */
         .schematic-label {
@@ -111,10 +168,12 @@
         .schematic-label.show { opacity: 1; }
         .schematic-label.left { flex-direction: row-reverse; transform: translate(-100%, -50%); }
         .schematic-label.right { flex-direction: row; transform: translate(0%, -50%); }
+        .schematic-label.bottom { flex-direction: column; transform: translate(-50%, 0%); }
         
         .schematic-label.left::before { content: ''; width: 50px; height: 1px; background: #6a1c3a; margin-left: 10px; }
         .schematic-label.right::before { content: ''; width: 50px; height: 1px; background: #6a1c3a; margin-right: 10px; }
-        
+        .schematic-label.bottom::before { content: ''; width: 1px; height: 50px; background: #6a1c3a; margin-bottom: 10px; }
+
         .schematic-label span {
             font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
             color: #6a1c3a; background: rgba(255, 255, 255, 0.85); padding: 4px 8px; border-radius: 4px;
@@ -175,25 +234,58 @@
             .viewport-header { top: 15px; width: 90%; padding: 15px; }
             .viewport-header h2 { font-size: 18px; }
             .viewport-header p { font-size: 13px; }
+            
+            /* Keep on left, vertically centered */
+            .scroll-nav { left: 15px; right: auto; top: 50%; transform: translateY(-50%); }
+            .nav-label { display: none; } 
+            
             .rail { flex: none; height: 45vh; width: 100%; border-left: none; }
             .text-block { height: 45vh; padding: 0 20px; }
             .content-box { padding: 25px; font-size: 0.95rem; }
             .block-label { margin-bottom: 8px; }
             
             .schematic-label.left::before, .schematic-label.right::before { width: 20px; }
+            .schematic-label.bottom::before { height: 20px; }
             .schematic-label span { font-size: 9px; padding: 3px 6px; }
+            
+            #anno-needle { top: 30%; right: 15%; }
+            #anno-safety { top: 25%; left: 5%; }
+            #anno-microspheres { top: 35%; right: 5%; }
+            #anno-diluent { top: 45%; left: 5%; }
+            #anno-dual { top: 40%; right: 5%; }
+            #anno-plunger { bottom: 20%; right: 5%; }
         }
     </style>
 </head>
 <body>
 
+<div class="scroll-nav">
+    <div class="nav-section">
+        <div class="nav-label">Device</div>
+        <div class="nav-dot active" data-target="step-1"></div>
+        <div class="nav-dot" data-target="step-2"></div>
+        <div class="nav-dot" data-target="step-3"></div>
+        <div class="nav-dot" data-target="step-4"></div>
+        <div class="nav-dot" data-target="step-5"></div>
+        <div class="nav-dot" data-target="step-6"></div>
+        <div class="nav-dot" data-target="step-7"></div>
+    </div>
+    
+    <div class="nav-section micro-section">
+        <div class="nav-label">Micro</div>
+        <div class="nav-dot" data-target="step-8"></div>
+        <div class="nav-dot" data-target="step-9"></div>
+        <div class="nav-dot" data-target="step-10"></div>
+    </div>
+</div>
+
 <div class="container">
     <div class="viz-viewport">
         <div class="model-card" id="model-container">
             
-            <div class="viewport-header">
+            <div class="viewport-header" id="main-header">
                 <h2>PRODUCT X Prefilled Injection Device</h2>
-                <p>PRODUCT X offers a proprietary delivery system and formulation designed with you and your patient’s experience in mind.</p>
+                <p>PRODUCT X is the only ADT for aPC that uses lyophilized microsphere technology, which controls the release of leuprolide acetate to achieve deep and sustained testosterone suppression.</p>
             </div>
 
             <canvas id="webgl-canvas"></canvas>
@@ -209,13 +301,15 @@
             <div id="label-mid-stoppers" class="schematic-label right"><span>Middle Stoppers</span></div>
             <div id="label-end-stopper" class="schematic-label right"><span>End Stopper</span></div>
             <div id="label-finger-grip" class="schematic-label right"><span>Finger Grip</span></div>
+            
+            <div id="label-microsphere" class="schematic-label bottom"><span>Microsphere<br>Polymer Matrix</span></div>
 
-            <div id="anno-needle" class="annotation"><div class="annotation-title">Fine 23-gauge needle +</div></div>
-            <div id="anno-safety" class="annotation"><div class="annotation-title">LuproLoc® safety +</div></div>
-            <div id="anno-microspheres" class="annotation"><div class="annotation-title">Lyophilized microsphere technology +</div></div>
-            <div id="anno-diluent" class="annotation"><div class="annotation-title">Diluent +</div></div>
-            <div id="anno-dual" class="annotation"><div class="annotation-title">Prefilled dual-chamber syringe +</div></div>
-            <div id="anno-plunger" class="annotation"><div class="annotation-title">Plunger +</div></div>
+            <div id="anno-needle" class="annotation"><div class="annotation-title">Fine 23-gauge needle</div></div>
+            <div id="anno-safety" class="annotation"><div class="annotation-title">LuproLoc® safety</div></div>
+            <div id="anno-microspheres" class="annotation"><div class="annotation-title">Lyophilized microsphere technology</div></div>
+            <div id="anno-diluent" class="annotation"><div class="annotation-title">Diluent</div></div>
+            <div id="anno-dual" class="annotation"><div class="annotation-title">Prefilled dual-chamber syringe</div></div>
+            <div id="anno-plunger" class="annotation"><div class="annotation-title">Plunger</div></div>
         </div>
     </div>
 
@@ -246,7 +340,7 @@
         <div class="text-block" id="step-4">
             <div class="content-box">
                 <span class="block-label">Lyophilized microsphere technology</span>
-                <p>Product X is formulated with lyophilized microsphere technology, gradually releasing active drug from each microsphere over time.</p>
+                <p>Lyophilized microsphere technology in PRODUCT X makes it possible to use a prefilled dual-chamber syringe for simple preparation and administration.</p>
             </div>
         </div>
         <div class="text-block" id="step-5">
@@ -267,18 +361,38 @@
                 <p>Screw the white plunger into the end stopper to release the diluent into the lyophilized microsphere powder. Gently shake the prefilled dual‑chamber syringe to mix—no external mixing required.</p>
             </div>
         </div>
+        
+        <div class="text-block" id="step-8">
+            <div class="content-box">
+                <span class="block-label">Delivery</span>
+                <p>The active drug, leuprolide acetate, is embedded in microcapsules composed of a biodegradable, hydrophobic polymer to overcome high solubility in body fluids and rapid excretion in vivo.</p>
+            </div>
+        </div>
+        <div class="text-block" id="step-9">
+            <div class="content-box">
+                <span class="block-label">Diffusion</span>
+                <p>The first phase is diffusion lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+            </div>
+        </div>
+        <div class="text-block" id="step-10">
+            <div class="content-box">
+                <span class="block-label">BioErosion</span>
+                <p>The second phase is bioerosion lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
     const canvas = document.getElementById('webgl-canvas');
     const container = document.getElementById('model-container');
-    const scene = new THREE.Scene();
+    const headerH2 = document.querySelector('#main-header h2');
+    const headerP = document.querySelector('#main-header p');
     
+    const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(30, container.clientWidth / container.clientHeight, 0.1, 100);
     camera.position.set(0, 0, 42); 
 
-    // Disabled real-time shadows for a cleaner AO look
     const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -295,22 +409,14 @@
     rimLight.position.set(-10, 5, -10);
     scene.add(rimLight);
 
-    // --- REALISTIC MATERIALS ---
-    const glassMat = new THREE.MeshPhysicalMaterial({ 
-        color: 0x99ccff, metalness: 0.1, roughness: 0.05, transmission: 0.88, opacity: 1, transparent: true, clearcoat: 1.0, clearcoatRoughness: 0.1
-    });
-    const plasticMat = new THREE.MeshPhysicalMaterial({ 
-        color: 0x88bbff, metalness: 0.0, roughness: 0.2, transmission: 0.75, opacity: 1, transparent: true, depthWrite: false 
-    });
+    // --- SYRINGE MATERIALS ---
+    const glassMat = new THREE.MeshPhysicalMaterial({ color: 0x99ccff, metalness: 0.1, roughness: 0.05, transmission: 0.88, opacity: 1, transparent: true, clearcoat: 1.0, clearcoatRoughness: 0.1 });
+    const plasticMat = new THREE.MeshPhysicalMaterial({ color: 0x88bbff, metalness: 0.0, roughness: 0.2, transmission: 0.75, opacity: 1, transparent: true, depthWrite: false });
     const rubberMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.9 }); 
     const purpleMat = new THREE.MeshStandardMaterial({ color: 0x47315a, roughness: 0.4 }); 
     const diluentMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transmission: 0.8, opacity: 0.8, transparent: true, roughness: 0 });
     const powderMat = new THREE.MeshStandardMaterial({ color: 0xfdfdfd, roughness: 1.0 });
-
-    // New Cap Material (Frosted, semi-transparent plastic)
-    const capMat = new THREE.MeshPhysicalMaterial({ 
-        color: 0xeeeeee, metalness: 0.0, roughness: 0.3, transmission: 0.6, opacity: 1, transparent: true, depthWrite: false 
-    });
+    const capMat = new THREE.MeshPhysicalMaterial({ color: 0xeeeeee, metalness: 0.0, roughness: 0.3, transmission: 0.6, opacity: 1, transparent: true, depthWrite: false });
 
     // --- ASSEMBLE SYRINGE ---
     const syringeGroup = new THREE.Group();
@@ -405,10 +511,9 @@
     needle.position.y = 6.2;
     syringeGroup.add(needle);
 
-    // Add the Rigid Needle Cap
     const capGeo = new THREE.CylinderGeometry(0.1, 0.28, 3.2, 32);
     const needleCap = new THREE.Mesh(capGeo, capMat);
-    needleCap.position.y = 6.4; // Positioned perfectly over the needle and hub
+    needleCap.position.y = 6.4; 
     syringeGroup.add(needleCap);
 
     const safetyGroup = new THREE.Group();
@@ -434,30 +539,24 @@
     syringeGroup.rotation.y = -Math.PI / 6; 
     scene.add(syringeGroup);
 
-    // --- CREATE TRUE AMBIENT OCCLUSION SHADOW (DARKER) ---
+    // --- CREATE TRUE AMBIENT OCCLUSION SHADOW ---
     function createSoftShadowTexture() {
         const canvas = document.createElement('canvas');
         canvas.width = 512; canvas.height = 512; 
         const ctx = canvas.getContext('2d');
-
         const gradient = ctx.createRadialGradient(
             canvas.width / 2, canvas.height / 2, 0, 
             canvas.width / 2, canvas.height / 2, canvas.width / 2
         );
-        
-        // Much darker center (50% opacity), smoother falloff to transparent
         gradient.addColorStop(0, 'rgba(0,0,0,0.5)');
         gradient.addColorStop(0.4, 'rgba(0,0,0,0.15)');
         gradient.addColorStop(1, 'rgba(0,0,0,0)'); 
-
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
         const texture = new THREE.CanvasTexture(canvas);
         texture.minFilter = THREE.LinearFilter;
         return texture;
     }
-
     const shadowTexture = createSoftShadowTexture();
     const shadowPlaneMat = new THREE.MeshBasicMaterial({
         map: shadowTexture, transparent: true, opacity: 1, depthWrite: false, side: THREE.DoubleSide
@@ -467,41 +566,124 @@
     shadowPlane.position.set(0, baseY, -3.0); 
     scene.add(shadowPlane);
 
+    // --- MICROSPHERE SCENE (THE BLOB & PARTICLES) ---
+    const microScene = new THREE.Group();
+    microScene.visible = false;
+    scene.add(microScene);
+
+    // High Gloss Orange Material for the Blob
+    const microSphereMat = new THREE.MeshPhysicalMaterial({ 
+        color: 0xff6600, 
+        metalness: 0.1, 
+        roughness: 0.15, 
+        clearcoat: 1.0, 
+        clearcoatRoughness: 0.1,
+        transmission: 0.1, 
+        opacity: 1, 
+        transparent: true
+    });
+
+    // 1. Build the "Blob" out of intersecting spheres
+    const blobGroup = new THREE.Group();
+    const blobParts = [];
+    
+    const coreGeo = new THREE.SphereGeometry(1.4, 32, 32);
+    const coreMesh = new THREE.Mesh(coreGeo, microSphereMat);
+    coreMesh.userData.basePos = new THREE.Vector3(0,0,0);
+    blobGroup.add(coreMesh);
+    blobParts.push(coreMesh);
+
+    const lumpGeo = new THREE.SphereGeometry(0.9, 32, 32);
+    for(let i=0; i<12; i++) {
+        const lump = new THREE.Mesh(lumpGeo, microSphereMat);
+        const phi = Math.acos( -1 + ( 2 * i ) / 12 );
+        const theta = Math.sqrt( 12 * Math.PI ) * phi;
+        const pos = new THREE.Vector3().setFromSphericalCoords(1.15, phi, theta);
+        
+        lump.position.copy(pos);
+        lump.userData.basePos = pos.clone();
+        blobGroup.add(lump);
+        blobParts.push(lump);
+    }
+    microScene.add(blobGroup);
+
+    // 2. Build the Tiny Drug Particles (Maroon Color)
+    const particles = [];
+    const drugGeo = new THREE.SphereGeometry(0.08, 16, 16);
+    const drugMat = new THREE.MeshStandardMaterial({ color: 0x6a1c3a, roughness: 0.2 });
+
+    for(let i=0; i<150; i++) {
+        const p = new THREE.Mesh(drugGeo, drugMat);
+        p.scale.set(0,0,0); // start hidden inside
+        
+        const u = Math.random();
+        const v = Math.random();
+        const theta = 2 * Math.PI * u;
+        const phi = Math.acos(2 * v - 1);
+        const dir = new THREE.Vector3().setFromSphericalCoords(1, phi, theta);
+        
+        p.userData = {
+            currentPos: new THREE.Vector3(0,0,0),
+            target1: dir.clone().multiplyScalar(2.5 + Math.random() * 1.5), 
+            target2: dir.clone().multiplyScalar(3.5 + Math.random() * 3.5), 
+            offset: Math.random() * Math.PI * 2 
+        };
+        
+        microScene.add(p);
+        particles.push(p);
+    }
+
+
     // --- PROJECTION HELPER FOR LABELS ---
     function updateLabelPosition(mesh, elementId, yOffset = 0) {
         const el = document.getElementById(elementId);
         if (!el) return;
-
         const vector = new THREE.Vector3();
         mesh.getWorldPosition(vector);
         vector.y += yOffset; 
         vector.project(camera);
-
         const x = (vector.x * 0.5 + 0.5) * container.clientWidth;
         const y = (vector.y * -0.5 + 0.5) * container.clientHeight;
-
-        el.style.left = `${x}px`;
-        el.style.top = `${y}px`;
+        el.style.left = `${x}px`; el.style.top = `${y}px`;
     }
 
+    // --- RENDER LOOP ---
     function animate() {
         requestAnimationFrame(animate);
-        if(!gsap.isTweening(syringeGroup.position)) {
+        
+        if(!gsap.isTweening(syringeGroup.position) && syringeGroup.visible) {
             const floatY = baseY + Math.sin(performance.now() * 0.0008) * 0.1; 
             syringeGroup.position.y = floatY;
             shadowPlane.position.y = floatY * 0.8; 
         }
+
+        if(microScene.visible) {
+            microScene.rotation.y += 0.001;
+            microScene.rotation.x += 0.0005;
+            
+            particles.forEach(p => {
+                if(p.scale.x > 0.01) { 
+                    p.position.copy(p.userData.currentPos);
+                    p.position.y += Math.sin(performance.now() * 0.002 + p.userData.offset) * 0.15;
+                }
+            });
+        }
         
-        updateLabelPosition(needle, 'label-needle');
-        updateLabelPosition(safetyGroup, 'label-safety', -0.5); 
-        updateLabelPosition(frontStopper, 'label-front-stopper');
-        updateLabelPosition(barrel, 'label-barrel', 2); 
-        updateLabelPosition(drugCake, 'label-powder');
-        updateLabelPosition(midStopper1, 'label-mid-stoppers', 0.25); 
-        updateLabelPosition(diluent, 'label-diluent');
-        updateLabelPosition(endStopper, 'label-end-stopper');
-        updateLabelPosition(rod, 'label-plunger', -1);
-        updateLabelPosition(thumb, 'label-finger-grip');
+        if (syringeGroup.visible) {
+            updateLabelPosition(needle, 'label-needle');
+            updateLabelPosition(safetyGroup, 'label-safety', -0.5); 
+            updateLabelPosition(frontStopper, 'label-front-stopper');
+            updateLabelPosition(barrel, 'label-barrel', 2); 
+            updateLabelPosition(drugCake, 'label-powder');
+            updateLabelPosition(midStopper1, 'label-mid-stoppers', 0.25); 
+            updateLabelPosition(diluent, 'label-diluent');
+            updateLabelPosition(endStopper, 'label-end-stopper');
+            updateLabelPosition(rod, 'label-plunger', -1);
+            updateLabelPosition(thumb, 'label-finger-grip');
+        }
+        if (microScene.visible) {
+            updateLabelPosition(blobGroup, 'label-microsphere', -2.5);
+        }
 
         renderer.render(scene, camera);
     }
@@ -513,73 +695,103 @@
         renderer.setSize(container.clientWidth, container.clientHeight);
     });
 
+    // --- TIMEOUT & STATE MANAGEMENT ---
+    let stepTimeouts = [];
+    let activeMixTL = null;
+    let currentPhase = 'macro'; 
+
     function resetOverlays() {
+        // Clear lingering timeouts from previous steps
+        stepTimeouts.forEach(clearTimeout);
+        stepTimeouts = [];
+
+        // Kill active mix timeline if user jumps away early
+        if (activeMixTL) {
+            activeMixTL.kill();
+            activeMixTL = null;
+        }
+
         document.querySelectorAll('.annotation').forEach(el => el.classList.remove('visible'));
+        document.querySelectorAll('.schematic-label').forEach(el => el.classList.remove('show'));
+    }
+
+    function applyMicroState(step) {
+        if(step === 8) {
+            blobParts.forEach(s => {
+                gsap.to(s.position, {x: s.userData.basePos.x, y: s.userData.basePos.y, z: s.userData.basePos.z, duration: 1});
+                gsap.to(s.scale, {x: 1, y: 1, z: 1, duration: 1});
+            });
+            particles.forEach(p => {
+                gsap.to(p.scale, {x: 0, y: 0, z: 0, duration: 0.5});
+                gsap.to(p.userData.currentPos, {x: 0, y: 0, z: 0, duration: 1});
+            });
+        }
+        else if (step === 9) {
+            blobParts.forEach(s => {
+                gsap.to(s.position, {x: s.userData.basePos.x, y: s.userData.basePos.y, z: s.userData.basePos.z, duration: 1});
+                gsap.to(s.scale, {x: 1, y: 1, z: 1, duration: 1});
+            });
+            particles.forEach((p, i) => {
+                if(i < 50) {
+                    gsap.to(p.scale, {x: 1, y: 1, z: 1, duration: 1, delay: Math.random()*0.5});
+                    gsap.to(p.userData.currentPos, {x: p.userData.target1.x, y: p.userData.target1.y, z: p.userData.target1.z, duration: 1.5, ease:"power2.out", delay: Math.random()*0.5});
+                } else {
+                    gsap.to(p.scale, {x: 0, y: 0, z: 0, duration: 0.5});
+                    gsap.to(p.userData.currentPos, {x: 0, y: 0, z: 0, duration: 1});
+                }
+            });
+        }
+        else if (step === 10) {
+            blobParts.forEach(s => {
+                gsap.to(s.position, {x: s.userData.basePos.x * 1.8, y: s.userData.basePos.y * 1.8, z: s.userData.basePos.z * 1.8, duration: 2, ease:"power2.inOut"});
+                gsap.to(s.scale, {x: 0.3, y: 0.3, z: 0.3, duration: 2}); 
+            });
+            particles.forEach((p, i) => {
+                gsap.to(p.scale, {x: 1, y: 1, z: 1, duration: 1, delay: Math.random()*0.5});
+                gsap.to(p.userData.currentPos, {x: p.userData.target2.x, y: p.userData.target2.y, z: p.userData.target2.z, duration: 2, ease:"power2.out", delay: Math.random()*0.5});
+            });
+        }
     }
 
     function triggerStepAnimation(stepId) {
         resetOverlays();
         const config = { duration: 1.2, ease: "power2.inOut" }; 
-
+        const stepNum = parseInt(stepId.split('-')[1]);
         const schematicLabels = document.querySelectorAll('.schematic-label');
         
-        // LOGIC FOR STEP 1 (OVERVIEW)
-        if (stepId === 'step-1') {
-            schematicLabels.forEach(el => el.classList.add('show'));
+        if (stepNum >= 8) {
+            headerH2.innerText = "Lyophilized Microsphere Technology";
+            headerP.innerText = "PRODUCT X is formulated with lyophilized microsphere technology, gradually releasing active drug from each microsphere over time.";
             
-            gsap.to(camera.position, { ...config, x: 0, y: 0, z: 42 });
-            gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 6, z: 0 });
-            gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
-            
-            gsap.to(safetyGroup.position, { ...config, y: 1.0 });
-            gsap.to(plungerGroup.position, { ...config, y: 0 });
-            gsap.to(diluent.position, { ...config, y: -1.2 });
-            gsap.to(midStopper1.position, { ...config, y: 0.4 });
-            gsap.to(midStopper2.position, { ...config, y: 0.9 });
-            gsap.to(drugCake.scale, { ...config, y: 1, x: 1, z: 1 });
-            gsap.to(drugCake.position, { ...config, y: 2.5 });
-
-            // Ensure Cap is ON and Visible
-            gsap.to(needleCap.position, { ...config, y: 6.4 });
-            gsap.to(needleCap.material, { duration: 0.8, opacity: 1 });
-
+            if (currentPhase === 'macro') {
+                gsap.to(camera.position, { duration: 1.0, x: 0, y: 7.5, z: 2, ease: "power2.in", onComplete: () => {
+                    syringeGroup.visible = false;
+                    shadowPlane.visible = false;
+                    microScene.visible = true;
+                    camera.position.set(0, 0, 10); 
+                    applyMicroState(stepNum);
+                    currentPhase = 'micro';
+                    stepTimeouts.push(setTimeout(() => document.getElementById('label-microsphere').classList.add('show'), 200));
+                }});
+            } else {
+                applyMicroState(stepNum);
+                stepTimeouts.push(setTimeout(() => document.getElementById('label-microsphere').classList.add('show'), 100));
+            }
         } else {
-            // Logic for all other steps: Hide schematic labels, remove cap
-            schematicLabels.forEach(el => el.classList.remove('show'));
+            headerH2.innerText = "PRODUCT X Prefilled Injection Device";
+            headerP.innerText = "PRODUCT X is the only ADT for aPC that uses lyophilized microsphere technology, which controls the release of leuprolide acetate to achieve deep and sustained testosterone suppression.";
             
-            // Slide cap off and fade it out to reveal the needle
-            gsap.to(needleCap.position, { ...config, y: 10.0 });
-            gsap.to(needleCap.material, { duration: 0.8, opacity: 0 });
+            if (currentPhase === 'micro') {
+                microScene.visible = false;
+                syringeGroup.visible = true;
+                shadowPlane.visible = true;
+                currentPhase = 'macro';
+            }
 
-            if (stepId === 'step-2') {
-                gsap.to(camera.position, { ...config, x: 0, y: 5.5, z: 12 });
-                gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 4, z: 0 });
-                gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
+            if (stepNum === 1) {
+                document.querySelectorAll('.schematic-label:not(#label-microsphere)').forEach(el => el.classList.add('show'));
                 
-                gsap.to(safetyGroup.position, { ...config, y: 1.0 });
-                
-                setTimeout(() => document.getElementById('anno-needle').classList.add('visible'), 600);
-
-            } else if (stepId === 'step-3') {
-                gsap.to(camera.position, { ...config, x: 0, y: 3.5, z: 15 });
-                gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 4, z: 0 });
-                gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
-                
-                gsap.to(safetyGroup.position, { duration: 0.8, y: 5.7, ease: "back.out(1.2)" });
-                
-                setTimeout(() => document.getElementById('anno-safety').classList.add('visible'), 400);
-
-            } else if (stepId === 'step-4') {
-                gsap.to(camera.position, { ...config, x: 0, y: 2.5, z: 12 });
-                gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 6, z: 0 }); 
-                gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
-                
-                gsap.to(safetyGroup.position, { ...config, y: 1.0 }); 
-                
-                setTimeout(() => document.getElementById('anno-microspheres').classList.add('visible'), 600);
-
-            } else if (stepId === 'step-5') {
-                gsap.to(camera.position, { ...config, x: 0, y: -1.2, z: 12 });
+                gsap.to(camera.position, { ...config, x: 0, y: 0, z: 42 });
                 gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 6, z: 0 });
                 gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
                 
@@ -591,40 +803,76 @@
                 gsap.to(drugCake.scale, { ...config, y: 1, x: 1, z: 1 });
                 gsap.to(drugCake.position, { ...config, y: 2.5 });
 
-                setTimeout(() => document.getElementById('anno-diluent').classList.add('visible'), 600);
+                gsap.to(needleCap.position, { ...config, y: 6.4 });
+                gsap.to(needleCap.material, { duration: 0.8, opacity: 1 });
 
-            } else if (stepId === 'step-6') {
-                gsap.to(camera.position, { ...config, x: 0, y: 0.5, z: 24 });
-                gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 6, z: 0 });
-                gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
-                
-                gsap.to(safetyGroup.position, { ...config, y: 1.0 });
-                gsap.to(plungerGroup.position, { ...config, y: 0 });
-                gsap.to(diluent.position, { ...config, y: -1.2 });
-                gsap.to(midStopper1.position, { ...config, y: 0.4 });
-                gsap.to(midStopper2.position, { ...config, y: 0.9 });
-                gsap.to(drugCake.scale, { ...config, y: 1, x: 1, z: 1 });
-                gsap.to(drugCake.position, { ...config, y: 2.5 });
+            } else {
+                gsap.to(needleCap.position, { ...config, y: 10.0 });
+                gsap.to(needleCap.material, { duration: 0.8, opacity: 0 });
 
-                setTimeout(() => document.getElementById('anno-dual').classList.add('visible'), 600);
+                if (stepNum === 2) {
+                    gsap.to(camera.position, { ...config, x: 0, y: 5.5, z: 12 });
+                    gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 4, z: 0 });
+                    gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
+                    gsap.to(safetyGroup.position, { ...config, y: 1.0 });
+                    stepTimeouts.push(setTimeout(() => document.getElementById('anno-needle').classList.add('visible'), 600));
 
-            } else if (stepId === 'step-7') {
-                gsap.to(camera.position, { ...config, x: 0, y: -4, z: 24 });
-                gsap.to(syringeGroup.rotation, { ...config, x: 0, y: 0, z: 0 });
-                
-                const mixTL = gsap.timeline({defaults: {ease: "power2.inOut", duration: 1.0}});
-                
-                mixTL.to(plungerGroup.position, { y: 2.5 }, 0);
-                mixTL.to(diluent.position, { y: 1.3 }, 0);
-                mixTL.to(midStopper1.position, { y: 2.9 }, 0.2);
-                mixTL.to(midStopper2.position, { y: 3.4 }, 0.2);
-                mixTL.to(drugCake.scale, { y: 0.1, x: 0.8, z: 0.8 }, 0.3);
-                mixTL.to(drugCake.position, { y: 3.8 }, 0.3);
+                } else if (stepNum === 3) {
+                    gsap.to(camera.position, { ...config, x: 0, y: 3.5, z: 15 });
+                    gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 4, z: 0 });
+                    gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
+                    gsap.to(safetyGroup.position, { duration: 0.8, y: 5.7, ease: "back.out(1.2)" });
+                    stepTimeouts.push(setTimeout(() => document.getElementById('anno-safety').classList.add('visible'), 400));
 
-                mixTL.to(syringeGroup.position, { x: 0.2, yoyo: true, repeat: 7, duration: 0.08, ease: "sine.inOut" }, 1.2);
-                mixTL.to(syringeGroup.position, { x: 0, y: baseY, duration: 0.1 }, 1.8);
+                } else if (stepNum === 4) {
+                    gsap.to(camera.position, { ...config, x: 0, y: 2.5, z: 12 });
+                    gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 6, z: 0 }); 
+                    gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
+                    gsap.to(safetyGroup.position, { ...config, y: 1.0 }); 
+                    stepTimeouts.push(setTimeout(() => document.getElementById('anno-microspheres').classList.add('visible'), 600));
 
-                setTimeout(() => document.getElementById('anno-plunger').classList.add('visible'), 2000);
+                } else if (stepNum === 5) {
+                    gsap.to(camera.position, { ...config, x: 0, y: -1.2, z: 12 });
+                    gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 6, z: 0 });
+                    gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
+                    gsap.to(safetyGroup.position, { ...config, y: 1.0 });
+                    gsap.to(plungerGroup.position, { ...config, y: 0 });
+                    gsap.to(diluent.position, { ...config, y: -1.2 });
+                    gsap.to(midStopper1.position, { ...config, y: 0.4 });
+                    gsap.to(midStopper2.position, { ...config, y: 0.9 });
+                    gsap.to(drugCake.scale, { ...config, y: 1, x: 1, z: 1 });
+                    gsap.to(drugCake.position, { ...config, y: 2.5 });
+                    stepTimeouts.push(setTimeout(() => document.getElementById('anno-diluent').classList.add('visible'), 600));
+
+                } else if (stepNum === 6) {
+                    gsap.to(camera.position, { ...config, x: 0, y: 0.5, z: 24 });
+                    gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 6, z: 0 });
+                    gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
+                    gsap.to(safetyGroup.position, { ...config, y: 1.0 });
+                    gsap.to(plungerGroup.position, { ...config, y: 0 });
+                    gsap.to(diluent.position, { ...config, y: -1.2 });
+                    gsap.to(midStopper1.position, { ...config, y: 0.4 });
+                    gsap.to(midStopper2.position, { ...config, y: 0.9 });
+                    gsap.to(drugCake.scale, { ...config, y: 1, x: 1, z: 1 });
+                    gsap.to(drugCake.position, { ...config, y: 2.5 });
+                    stepTimeouts.push(setTimeout(() => document.getElementById('anno-dual').classList.add('visible'), 600));
+
+                } else if (stepNum === 7) {
+                    gsap.to(camera.position, { ...config, x: 0, y: -4, z: 24 });
+                    gsap.to(syringeGroup.rotation, { ...config, x: 0, y: 0, z: 0 });
+                    
+                    activeMixTL = gsap.timeline({defaults: {ease: "power2.inOut", duration: 1.0}});
+                    activeMixTL.to(plungerGroup.position, { y: 2.5 }, 0);
+                    activeMixTL.to(diluent.position, { y: 1.3 }, 0);
+                    activeMixTL.to(midStopper1.position, { y: 2.9 }, 0.2);
+                    activeMixTL.to(midStopper2.position, { y: 3.4 }, 0.2);
+                    activeMixTL.to(drugCake.scale, { y: 0.1, x: 0.8, z: 0.8 }, 0.3);
+                    activeMixTL.to(drugCake.position, { y: 3.8 }, 0.3);
+                    activeMixTL.to(syringeGroup.position, { x: 0.2, yoyo: true, repeat: 7, duration: 0.08, ease: "sine.inOut" }, 1.2);
+                    activeMixTL.to(syringeGroup.position, { x: 0, y: baseY, duration: 0.1 }, 1.8);
+
+                    stepTimeouts.push(setTimeout(() => document.getElementById('anno-plunger').classList.add('visible'), 2000));
+                }
             }
         }
     }
@@ -635,10 +883,23 @@
                 document.querySelectorAll('.text-block').forEach(b => b.classList.remove('active'));
                 entry.target.classList.add('active'); 
                 triggerStepAnimation(entry.target.id);
+                
+                document.querySelectorAll('.nav-dot').forEach(dot => dot.classList.remove('active'));
+                const activeDot = document.querySelector(`.nav-dot[data-target="${entry.target.id}"]`);
+                if(activeDot) activeDot.classList.add('active');
             } 
         });
     }, { root: document.getElementById('scroll-rail'), threshold: 0.6 });
     document.querySelectorAll('.text-block').forEach(b => obs.observe(b));
+
+    document.querySelectorAll('.nav-dot').forEach(dot => {
+        dot.addEventListener('click', () => {
+            const targetId = dot.getAttribute('data-target');
+            const targetElement = document.getElementById(targetId);
+            targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+    });
+
 </script>
 </body>
 </html>
