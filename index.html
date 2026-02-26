@@ -3,19 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scrollytelling Prototype - Copy Updates</title>
+    <title>Lupron Depot Syringe - Micro World & Nav Fix</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #f8f9fa; font-family: "Myriad Pro", "Segoe UI", sans-serif; }
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #f4f4f4; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         .container { display: flex; height: 100vh; width: 100vw; }
         
-        .chart-viewport { 
+        .viz-viewport { 
             flex: 2; 
             display: flex; 
-            flex-direction: column; 
             align-items: center; 
             justify-content: center; 
-            padding: 30px; 
+            padding: 2vmin; 
             box-sizing: border-box;
+            position: relative;
+        }
+
+        .model-card { 
+            width: 100%; 
+            height: 100%; 
+            border-radius: 12px; 
+            position: relative; 
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #ffffff 20%, #ededed 100%);
+        }
+
+        /* --- Ever-present Viewport Header --- */
+        .viewport-header {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            pointer-events: none;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 20px 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+            width: 80%;
+            max-width: 650px;
+            transition: all 0.5s ease;
+        }
+        .viewport-header h2 {
+            margin: 0 0 8px 0;
+            font-size: 22px;
+            font-weight: 800;
+            color: #6a1c3a; 
+        }
+        .viewport-header p {
+            margin: 0 auto;
+            font-size: 15px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        #webgl-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            outline: none;
         }
 
         /* --- Global Dot Navigation --- */
@@ -26,669 +80,825 @@
             transform: translateY(-50%);
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 28px; 
             z-index: 50;
+        }
+        .nav-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px; 
+        }
+        .nav-label {
+            font-size: 10px;
+            font-weight: 800;
+            color: #6a1c3a;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.5;
+            margin-bottom: 2px;
         }
         .nav-dot {
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            background: rgba(255, 140, 0, 0.25);
+            background: rgba(106, 28, 58, 0.25);
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
             position: relative;
         }
         .nav-dot:hover {
-            background: rgba(255, 140, 0, 0.6);
+            background: rgba(106, 28, 58, 0.6);
             transform: scale(1.2);
         }
         .nav-dot.active {
-            background: rgba(255, 140, 0, 1);
+            background: rgba(106, 28, 58, 1);
             transform: scale(1.6);
         }
 
-        /* --- Data Toggle Styles --- */
-        .data-toggle {
-            display: flex;
-            background: #eef1f5;
-            padding: 4px;
-            border-radius: 30px;
-            margin-bottom: 25px; 
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        /* Specific styles for the Micro section dots */
+        .micro-section .nav-label {
+            color: #ff6600;
         }
-        .toggle-btn {
-            background: transparent;
-            border: none;
-            padding: 8px 24px;
-            border-radius: 26px;
-            font-size: 14px;
-            font-weight: 800;
-            color: #666;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: inherit;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .micro-section .nav-dot {
+            background: rgba(255, 102, 0, 0.25); /* #ff6600 */
         }
-        .toggle-btn.active {
-            background: #ff8c00;
-            color: white;
-            box-shadow: 0 2px 8px rgba(255, 140, 0, 0.3);
+        .micro-section .nav-dot:hover {
+            background: rgba(255, 102, 0, 0.6);
         }
-        .toggle-btn:hover:not(.active) {
-            color: #333;
-            background: rgba(255,255,255,0.6);
+        .micro-section .nav-dot.active {
+            background: rgba(255, 102, 0, 1);
         }
 
-        .chart-card { width: 100%; max-width: 1150px; background: white; padding: 35px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); position: relative; overflow: hidden; }
-        svg { width: 100%; height: auto; display: block; overflow: hidden; }
-
-        /* --- Data Points Styles --- */
-        .viz-point { 
-            fill: #ff8c00; 
-            stroke: #fff;
-            stroke-width: 2px;
-        }
-        .viz-point.interactive-mode {
-            transition: fill 0.6s ease, stroke 0.6s ease, opacity 0.6s ease;
-        }
-        .faded-point { 
-            fill: #ccc !important; 
-            stroke: #fff !important;
-            opacity: 0.3 !important; 
-        }
-
-        /* --- Trend Line Segments --- */
-        .trend-segment {
-            stroke: #ff8c00;
-            stroke-width: 4px;
-            stroke-linecap: round;
-        }
-        .trend-segment.interactive-mode {
-            transition: stroke 0.6s ease, opacity 0.6s ease;
-        }
-        .trend-segment.faded-line {
-            stroke: #ccc !important;
-            opacity: 0.3 !important;
-        }
-
-        /* --- Injection Gradients --- */
-        .inj-gradient-rect {
-            fill: url(#injectionFade);
+        /* --- 2D Annotations (Story Steps) --- */
+        .annotation {
+            position: absolute;
             opacity: 0;
-            transition: opacity 0.8s ease;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            pointer-events: none;
+            background: #ffffff;
+            padding: 12px 24px;
+            border-radius: 30px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transform: translateY(15px);
+            z-index: 20;
         }
-
-        /* Grid & Axes */
-        .grid-line { transition: stroke 0.6s ease, opacity 0.6s ease, stroke-width 0.6s ease; stroke: #888; stroke-width: 0.3; opacity: 0.2; }
-        .axis-line { stroke: #666; stroke-width: 1.5; fill: none; }
-        
-        .axis-text { 
+        .annotation.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .annotation-title { 
+            font-weight: 700; 
+            color: #6a1c3a; 
             font-size: 15px; 
-            fill: #333; 
-            text-anchor: end; 
-            transition: fill 0.6s ease, font-size 0.6s ease, opacity 0.6s ease; 
         }
-
-        /* --- Overlays --- */
-        .overlay-group { opacity: 0; transition: opacity 0.5s ease; pointer-events: none; }
-        .visible { opacity: 1 !important; }
         
-        .stat-large { font-size: 48px; font-weight: 900; fill: #ff8c00; }
-        .stat-desc { font-size: 18px; font-weight: 700; fill: #333; }
+        #anno-needle { top: 35%; right: 35%; }
+        #anno-safety { top: 25%; left: 25%; }
+        #anno-microspheres { top: 38%; right: 28%; }
+        #anno-diluent { top: 55%; left: 28%; }
+        #anno-dual { top: 48%; right: 22%; }
+        #anno-plunger { bottom: 15%; right: 25%; }
+
+        /* --- Schematic Labels & Leader Lines --- */
+        .schematic-label {
+            position: absolute; display: flex; align-items: center;
+            pointer-events: none; z-index: 15; opacity: 0; transition: opacity 0.4s ease;
+        }
+        .schematic-label.show { opacity: 1; }
+        .schematic-label.left { flex-direction: row-reverse; transform: translate(-100%, -50%); }
+        .schematic-label.right { flex-direction: row; transform: translate(0%, -50%); }
+        .schematic-label.bottom { flex-direction: column; transform: translate(-50%, 0%); }
         
-        .injection-label { font-size: 16px; font-weight: 800; fill: #2c7bb6; text-transform: uppercase; letter-spacing: 0.5px; } 
-        .bar-value-label { font-size: 13px; font-weight: 800; fill: #ff8c00; text-anchor: middle; }
+        .schematic-label.left::before { content: ''; width: 50px; height: 1px; background: #6a1c3a; margin-left: 10px; }
+        .schematic-label.right::before { content: ''; width: 50px; height: 1px; background: #6a1c3a; margin-right: 10px; }
+        .schematic-label.bottom::before { content: ''; width: 1px; height: 50px; background: #6a1c3a; margin-bottom: 10px; }
 
-        .callout-text { font-size: 18px; font-weight: 600; fill: #333; }
-        .callout-highlight { font-size: 36px; font-weight: 900; fill: #ff8c00; }
-
-        .y-50-emphasis { font-size: 20px !important; font-weight: 900 !important; fill: #888 !important; }
-        .y-20-emphasis { font-size: 20px !important; font-weight: 900 !important; fill: #ff8c00 !important; }
-        
-        .threshold-tag { font-size: 12px; font-weight: 900; opacity: 0; transition: opacity 0.8s ease; text-transform: uppercase; }
-
-        #castrate-highlight { fill: #888; opacity: 0; transition: opacity 0.6s ease, y 0.8s ease, height 0.8s ease; }
-        #deep-suppression-highlight { fill: #ff8c00; opacity: 0; transition: opacity 0.6s ease, y 0.8s ease, height 0.8s ease; }
-        .zone-visible { opacity: 0.1 !important; }
-        .zone-zoom { opacity: 0.05 !important; }
-        .orange-visible { opacity: 0.15 !important; }
-
-        .week-num { font-size: 14px; font-weight: bold; fill: #444; text-anchor: middle; transition: 0.4s; }
-        .highlight-week { font-size: 20px !important; fill: #ff8c00 !important; }
+        .schematic-label span {
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+            color: #6a1c3a; background: rgba(255, 255, 255, 0.85); padding: 4px 8px; border-radius: 4px;
+            text-align: center; border: 1px solid rgba(106, 28, 58, 0.2); backdrop-filter: blur(4px);
+        }
 
         /* --- Rail --- */
-        .rail { flex: 1; overflow-y: scroll; scroll-snap-type: y mandatory; background: #ffffff; border-left: 1px solid #ddd; }
+        .rail { flex: 1; overflow-y: scroll; scroll-snap-type: y mandatory; background: #ffffff; border-left: 1px solid #e0e0e0; }
         .text-block { height: 100vh; display: flex; align-items: center; justify-content: center; scroll-snap-align: start; padding: 0 40px; }
-        .content-box { padding: 30px; border-radius: 6px; border-left: 5px solid #eee; background: #fff; transition: 0.4s; opacity: 0.25; max-width: 500px; }
-        .text-block.active .content-box { opacity: 1; border-left-color: #ff8c00; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .block-label { font-weight: 800; color: #ff8c00; font-size: 0.9rem; display: block; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .content-box { 
+            padding: 35px; 
+            border-radius: 16px; 
+            background: #ffffff; 
+            transition: 0.4s ease; 
+            opacity: 0.3; 
+            max-width: 500px; 
+            transform: scale(0.95);
+        }
+        .text-block.active .content-box { 
+            opacity: 1; 
+            transform: scale(1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.06); 
+        }
+        .block-label { 
+            font-weight: 800; 
+            color: #6a1c3a; 
+            font-size: 1.1rem; 
+            display: block; 
+            margin-bottom: 12px; 
+        }
         .content-box p { line-height: 1.7; color: #444; margin: 0; font-size: 1.1rem; }
+
+        /* Scroll Prompt */
+        .scroll-prompt {
+            display: flex;
+            align-items: center;
+            margin-top: 25px;
+            font-weight: 700;
+            font-size: 13px;
+            color: #6a1c3a;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            animation: bounce 2s infinite;
+        }
+        .scroll-prompt svg { margin-left: 8px; }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(5px); }
+            60% { transform: translateY(3px); }
+        }
 
         @media (max-width: 768px) {
             .container { flex-direction: column; }
-            .chart-viewport { flex: none; height: 50vh; width: 100%; padding: 15px 10px 10px 10px; border-bottom: 1px solid #ddd; }
-            .data-toggle { margin-bottom: 10px; }
-            .toggle-btn { padding: 6px 14px; font-size: 12px; }
-            .chart-card { padding: 10px; box-shadow: none; max-width: 100%; }
+            .viz-viewport { flex: none; height: 55vh; width: 100%; padding: 0; }
+            .model-card { border-radius: 0; }
+            .viewport-header { top: 15px; width: 90%; padding: 15px; }
+            .viewport-header h2 { font-size: 18px; }
+            .viewport-header p { font-size: 13px; }
             
-            /* Move Nav Dots to right side of viewport on mobile */
-            .scroll-nav { left: auto; right: 15px; top: 25%; }
+            /* Keep on left, vertically centered */
+            .scroll-nav { left: 15px; right: auto; top: 50%; transform: translateY(-50%); }
+            .nav-label { display: none; } 
             
-            .rail { flex: none; height: 50vh; width: 100%; border-left: none; }
-            .text-block { height: 50vh; padding: 0 20px; }
-            .content-box { padding: 20px; font-size: 0.9rem; }
-            .stat-large { font-size: 42px; }
-            .callout-highlight { font-size: 28px; }
+            .rail { flex: none; height: 45vh; width: 100%; border-left: none; }
+            .text-block { height: 45vh; padding: 0 20px; }
+            .content-box { padding: 25px; font-size: 0.95rem; }
+            .block-label { margin-bottom: 8px; }
+            
+            .schematic-label.left::before, .schematic-label.right::before { width: 20px; }
+            .schematic-label.bottom::before { height: 20px; }
+            .schematic-label span { font-size: 9px; padding: 3px 6px; }
+            
+            #anno-needle { top: 30%; right: 15%; }
+            #anno-safety { top: 25%; left: 5%; }
+            #anno-microspheres { top: 35%; right: 5%; }
+            #anno-diluent { top: 45%; left: 5%; }
+            #anno-dual { top: 40%; right: 5%; }
+            #anno-plunger { bottom: 20%; right: 5%; }
         }
     </style>
 </head>
 <body>
 
 <div class="scroll-nav">
-    <div class="nav-dot active" data-target="block-1"></div>
-    <div class="nav-dot" data-target="block-2"></div>
-    <div class="nav-dot" data-target="block-3"></div>
-    <div class="nav-dot" data-target="block-4"></div>
-    <div class="nav-dot" data-target="block-5"></div>
-    <div class="nav-dot" data-target="block-6"></div>
-    <div class="nav-dot" data-target="block-7"></div>
+    <div class="nav-section">
+        <div class="nav-label">Device</div>
+        <div class="nav-dot active" data-target="step-1"></div>
+        <div class="nav-dot" data-target="step-2"></div>
+        <div class="nav-dot" data-target="step-3"></div>
+        <div class="nav-dot" data-target="step-4"></div>
+        <div class="nav-dot" data-target="step-5"></div>
+        <div class="nav-dot" data-target="step-6"></div>
+        <div class="nav-dot" data-target="step-7"></div>
+    </div>
+    
+    <div class="nav-section micro-section">
+        <div class="nav-label">Micro</div>
+        <div class="nav-dot" data-target="step-8"></div>
+        <div class="nav-dot" data-target="step-9"></div>
+        <div class="nav-dot" data-target="step-10"></div>
+    </div>
 </div>
 
 <div class="container">
-    <div class="chart-viewport">
-        <div class="data-toggle" id="data-toggle-group">
-            <button class="toggle-btn active">6-Month</button>
-            <button class="toggle-btn">4-Month</button>
-            <button class="toggle-btn">3-Month</button>
-        </div>
+    <div class="viz-viewport">
+        <div class="model-card" id="model-container">
+            
+            <div class="viewport-header" id="main-header">
+                <h2>PRODUCT X Prefilled Injection Device</h2>
+                <p>PRODUCT X is the only ADT for aPC that uses lyophilized microsphere technology, which controls the release of leuprolide acetate to achieve deep and sustained testosterone suppression.</p>
+            </div>
 
-        <div class="chart-card">
-            <svg id="viz-svg" viewBox="0 0 1241 739" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="injectionFade" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" style="stop-color:#2c7bb6; stop-opacity:0.25" />
-                        <stop offset="100%" style="stop-color:#2c7bb6; stop-opacity:0" />
-                    </linearGradient>
-                </defs>
+            <canvas id="webgl-canvas"></canvas>
+            
+            <div id="label-needle" class="schematic-label left"><span>Needle & Cap</span></div>
+            <div id="label-front-stopper" class="schematic-label left"><span>Front Stopper</span></div>
+            <div id="label-powder" class="schematic-label left"><span>Leuprolide Acetate<br>Microsphere Powder</span></div>
+            <div id="label-diluent" class="schematic-label left"><span>Diluent</span></div>
+            <div id="label-plunger" class="schematic-label left"><span>Plunger</span></div>
+            
+            <div id="label-safety" class="schematic-label right"><span>LuproLoc®<br>Safety Device</span></div>
+            <div id="label-barrel" class="schematic-label right"><span>Barrel</span></div>
+            <div id="label-mid-stoppers" class="schematic-label right"><span>Middle Stoppers</span></div>
+            <div id="label-end-stopper" class="schematic-label right"><span>End Stopper</span></div>
+            <div id="label-finger-grip" class="schematic-label right"><span>Finger Grip</span></div>
+            
+            <div id="label-microsphere" class="schematic-label bottom"><span>Microsphere<br>Polymer Matrix</span></div>
 
-                <rect id="castrate-highlight" x="170" y="524.5" width="942" height="35" />
-                <rect id="deep-suppression-highlight" x="170" y="545.5" width="942" height="14" />
-                
-                <g id="grid-layer"></g>
-                <g id="y-axis-layer"></g>
-
-                <polyline class="axis-line" points="170,137.5 170,559.5 1120,559.5" />
-
-                <text style="font-size: 15px; fill: #333; text-anchor: end;" x="160" y="564">0</text>
-
-                <g id="injection-lines-group">
-                    <rect class="inj-gradient-rect" x="183.4" y="140" width="451.6" height="419.5" />
-                    <rect class="inj-gradient-rect" x="635" y="140" width="473" height="419.5" />
-                </g>
-
-                <text id="tag-castrate" class="threshold-tag" x="1120" y="145" style="fill: #888;">Castrate Level</text>
-                <text id="tag-deep" class="threshold-tag" x="1120" y="395" style="fill: #ff8c00;">Deep Suppression (≤20 ng/dL)</text>
-
-                <g id="trend-segments-group"></g>
-                <g id="points-layer"></g>
-                <g id="week-labels-group"></g>
-
-                <g id="overlay-b2" class="overlay-group">
-                    <text class="injection-label" x="183.4" y="105" text-anchor="start">1st Injection</text>
-                    <text class="injection-label" x="635" y="105" text-anchor="start">2nd Injection</text>
-                    <line x1="183.4" y1="110" x2="183.4" y2="140" style="stroke:#2c7bb6; stroke-width:2; fill:none;" />
-                    <line x1="635" y1="110" x2="635" y2="140" style="stroke:#2c7bb6; stroke-width:2; fill:none;" />
-                    <text x="409" y="220" text-anchor="middle" class="callout-text">
-                        <tspan x="409" dy="0">PRODUCT X requires as few as</tspan>
-                        <tspan x="409" dy="1.4em" class="callout-highlight">2 doses per year—</tspan>
-                        <tspan x="409" dy="1.6em">simplifying treatment schedules</tspan>
-                        <tspan x="409" dy="1.4em">to strengthen patient adherence—</tspan>
-                        <tspan x="409" dy="1.4em">while maintaining deep and durable</tspan>
-                        <tspan x="409" dy="1.4em">testosterone suppression</tspan>
-                        <tspan x="409" dy="1.4em">throughout each dosing cycle.</tspan>
-                    </text>
-                </g>
-
-                <g id="overlay-b3" class="overlay-group"><text x="220" y="80" style="font-size: 15px; font-weight: bold; fill: #ff8c00;"><tspan x="220" dy="1.2em">Temporary spike in testosterone</tspan><tspan x="220" dy="1.2em">expected with GnRH agonists.</tspan></text></g>
-                <g id="overlay-b4" class="overlay-group"><text class="bar-value-label" x="242" y="515">15.9 ng/dL</text><text class="bar-value-label" x="635" y="525">14.2 ng/dL</text><text class="stat-large" x="640" y="330" text-anchor="middle">93.4%</text><text class="stat-desc" x="640" y="355" text-anchor="middle"><tspan x="640" dy="0">of patients maintained testosterone below</tspan><tspan x="640" dy="1.4em">castrate levels from week 4 to 48 (n=148).</tspan></text></g>
-                <g id="overlay-b5" class="overlay-group"><text class="bar-value-label" x="1108" y="535">9.9 ng/dL</text><text class="stat-desc" x="640" y="310" text-anchor="middle">mean serum testosterone level at week 48 was</text><text class="stat-large" x="640" y="365" text-anchor="middle">9.9 ng/dL</text></g>
-                <g id="overlay-b7" class="overlay-group"><text class="stat-large" x="640" y="280" text-anchor="middle">94.1%</text><text class="stat-desc" x="640" y="305" text-anchor="middle">of patients had a deep response</text></g>
-
-                <text style="font-size: 16px; font-weight: bold; fill: #333;" transform="translate(50, 348) rotate(-90)" text-anchor="middle">Mean Serum Testosterone (ng/dL)</text>
-                <text style="font-size: 14px; font-weight: bold; fill: #666;" x="645" y="620" text-anchor="middle">WEEKS</text>
-            </svg>
+            <div id="anno-needle" class="annotation"><div class="annotation-title">Fine 23-gauge needle</div></div>
+            <div id="anno-safety" class="annotation"><div class="annotation-title">LuproLoc® safety</div></div>
+            <div id="anno-microspheres" class="annotation"><div class="annotation-title">Lyophilized microsphere technology</div></div>
+            <div id="anno-diluent" class="annotation"><div class="annotation-title">Diluent</div></div>
+            <div id="anno-dual" class="annotation"><div class="annotation-title">Prefilled dual-chamber syringe</div></div>
+            <div id="anno-plunger" class="annotation"><div class="annotation-title">Plunger</div></div>
         </div>
     </div>
 
     <div class="rail" id="scroll-rail">
-        <div class="text-block" id="block-1">
+        
+        <div class="text-block" id="step-1">
             <div class="content-box">
-                <span class="block-label">A foundation of treatment</span>
-                <p>Achieving and maintaining deep, durable testosterone suppression is essential in the management of advanced prostate cancer. PRODUCT X delivers rapid castrate levels followed by profound, sustained suppression, supported by extensive clinical evidence across long‑acting depot formulations. Here is the 48-week clinical profile of 148 patients initiating therapy.</p>
+                <span class="block-label">PRODUCT X Prefilled Dual-Chamber Syringe</span>
+                <p>An interactive exploration of Product X's proprietary delivery system.</p>
+                <div class="scroll-prompt">
+                    Scroll to continue
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                </div>
             </div>
         </div>
-        <div class="text-block" id="block-2">
+        <div class="text-block" id="step-2">
             <div class="content-box">
-                <span class="block-label">Twice-Yearly Dosing</span>
-                <p>Product X requires as few as 2 doses per year, simplifying treatment schedules to strengthen patient adherence. Supported by real world evidence, ~9 in 10 patients adhered to treatment at 3 years.</p>
+                <span class="block-label">Fine 23-gauge needle</span>
+                <p>The active drug, leuprolide acetate, is embedded in microcapsules composed of a biodegradable, hydrophobic polymer to overcome high solubility in body fluids and rapid excretion in vivo.</p>
             </div>
         </div>
-        <div class="text-block" id="block-3">
+        <div class="text-block" id="step-3">
             <div class="content-box">
-                <span class="block-label">Expected Initial Testosterone Surge</span>
-                <p>As with all GnRH agonists, an initial, transient rise in testosterone—often referred to as the treatment <b>“flare”</b>—may occur shortly after starting therapy. This temporary increase is an expected physiologic response before testosterone levels decline rapidly with continued PRODUCT X treatment.</p>
+                <span class="block-label">LuproLoc® safety</span>
+                <p>After withdrawing the syringe, activate the LuproLoc® safety device by pushing the arrow on the lock upward toward the needle tip with your thumb or finger until the needle cover fully extends and a CLICK is heard or felt.</p>
             </div>
         </div>
-        <div class="text-block" id="block-4">
+        <div class="text-block" id="step-4">
             <div class="content-box">
-                <span class="block-label">SUSTAINED CONTROL</span>
-                <p>Following the expected initial surge, testosterone levels with PRODUCT X decline rapidly. Studies show over 93% of patients on PRODUCT X achieved testosterone suppression down to castrate levels within the first 30 days and throughout treatment.</p>
+                <span class="block-label">Lyophilized microsphere technology</span>
+                <p>Lyophilized microsphere technology in PRODUCT X makes it possible to use a prefilled dual-chamber syringe for simple preparation and administration.</p>
             </div>
         </div>
-        <div class="text-block" id="block-5">
+        <div class="text-block" id="step-5">
             <div class="content-box">
-                <span class="block-label">Durable Efficacy</span>
-                <p>PRODUCT X provides deep and sustained testosterone suppression, with mean levels remaining well below the castrate threshold throughout treatment. By the end of the 48‑week interval, mean serum testosterone reached <b>9.9 ng/dL</b>, reflecting continued profound suppression.</p>
+                <span class="block-label">Diluent</span>
+                <p>Sterile liquid used to hydrate and dissolve the lyophilized microsphere powder.</p>
             </div>
         </div>
-        <div class="text-block" id="block-6">
+        <div class="text-block" id="step-6">
             <div class="content-box">
-                <span class="block-label">Stability of Response</span>
-                <p>Rescaling to the <b>0–50 ng/dL range</b> highlights how PRODUCT X demonstrates consistent suppression across the dosing interval, with stable testosterone levels throughout the maintenance phase.</p>
+                <span class="block-label">Prefilled dual-chamber syringe</span>
+                <p>Dual‑chamber, prefilled syringe system that stores the diluent and lyophilized microsphere powder separately. Activating the plunger releases the diluent for in‑syringe mixing prior to injection.</p>
             </div>
         </div>
-        <div class="text-block" id="block-7">
+        <div class="text-block" id="step-7">
             <div class="content-box">
-                <span class="block-label">Deep Testosterone Suppression</span>
-                <p>PRODUCT X delivers deep levels of testosterone suppression, achieving concentrations ≤20 ng/dL in the majority of patients. In this study, <b>94.1% of patients</b> reached deep suppression within this threshold.</p>
+                <span class="block-label">Plunger</span>
+                <p>Screw the white plunger into the end stopper to release the diluent into the lyophilized microsphere powder. Gently shake the prefilled dual‑chamber syringe to mix—no external mixing required.</p>
+            </div>
+        </div>
+        
+        <div class="text-block" id="step-8">
+            <div class="content-box">
+                <span class="block-label">Hydration</span>
+                <p>Once the formulation is mixed and injected, water and body fluids begin soaking into each microsphere, causing it to swell.</p>
+            </div>
+        </div>
+        <div class="text-block" id="step-9">
+            <div class="content-box">
+                <span class="block-label">Initial Release: Diffusion</span>
+                <p>Leuprolide acetate moves from areas of high concentration to areas of low concentration, providing a controlled release of active drug from each microsphere.</p>
+            </div>
+        </div>
+        <div class="text-block" id="step-10">
+            <div class="content-box">
+                <span class="block-label">Extended Release: Bioerosion</span>
+                <p>Over the set dosing period, each microsphere continues to break down and release remaining active drug.</p>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // --- UI INTERACTION FOR TOGGLE ---
-    const toggleButtons = document.querySelectorAll('.toggle-btn');
-    toggleButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            toggleButtons.forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-        });
-    });
-
-    const barData = [
-        {h: 304, y: 254, x: 175}, {h: 426, y: 132, x: 194.64}, {h: 86, y: 472, x: 214.28}, {h: 23, y: 535, x: 233.93},
-        {h: 12, y: 546, x: 253.57}, {h: 8, y: 550, x: 273.21}, {h: 6, y: 552, x: 292.85}, {h: 4, y: 554, x: 312.49},
-        {h: 2, y: 556, x: 332.13}, {h: 2, y: 556, x: 351.78}, {h: 3, y: 555, x: 371.42}, {h: 3, y: 555, x: 391.06},
-        {h: 3, y: 555, x: 410.7}, {h: 3, y: 555, x: 430.34}, {h: 3, y: 555, x: 449.99}, {h: 3, y: 555, x: 469.63},
-        {h: 4, y: 554, x: 489.27}, {h: 2, y: 556, x: 508.91}, {h: 4, y: 554, x: 528.55}, {h: 3, y: 555, x: 548.19},
-        {h: 6, y: 552, x: 567.84}, {h: 8, y: 550, x: 587.48}, {h: 8, y: 550, x: 607.12}, {h: 8, y: 550, x: 626.76},
-        {h: 12, y: 546, x: 646.4}, {h: 6, y: 552, x: 666.04}, {h: 4, y: 554, x: 685.69}, {h: 4, y: 554, x: 705.33},
-        {h: 4, y: 554, x: 724.97}, {h: 4, y: 554, x: 744.61}, {h: 6, y: 552, x: 764.25}, {h: 6, y: 552, x: 783.9},
-        {h: 8, y: 550, x: 803.54}, {h: 8, y: 550, x: 823.18}, {h: 8, y: 550, x: 842.82}, {h: 6, y: 552, x: 862.46},
-        {h: 5, y: 553, x: 882.1}, {h: 3, y: 555, x: 901.75}, {h: 3, y: 555, x: 921.39}, {h: 3, y: 555, x: 941.03},
-        {h: 3, y: 555, x: 960.67}, {h: 4, y: 554, x: 980.31}, {h: 6, y: 552, x: 999.96}, {h: 6, y: 552, x: 1019.6},
-        {h: 6, y: 552, x: 1039.24}, {h: 6, y: 552, x: 1058.88}, {h: 6, y: 552, x: 1078.52}, {h: 8, y: 550, x: 1098.16}
-    ];
-
-    const BASELINE = 559.5;
-    const MAX_H = 422;
-    let introComplete = false;
-    let hasPlayed = false;
-
-    const pointsLayer = document.getElementById('points-layer');
-    const segmentsGroup = document.getElementById('trend-segments-group');
-    const labelsGroup = document.getElementById('week-labels-group');
-    const gridLayer = document.getElementById('grid-layer');
-    const yAxisLayer = document.getElementById('y-axis-layer');
-
-    let visibleIndices = [];
-    const lineElements = [];
+    const canvas = document.getElementById('webgl-canvas');
+    const container = document.getElementById('model-container');
+    const headerH2 = document.querySelector('#main-header h2');
+    const headerP = document.querySelector('#main-header p');
     
-    // Points start at their true data y positions now, no sliding
-    let currentYs = barData.map(d => d.y);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(30, container.clientWidth / container.clientHeight, 0.1, 100);
+    camera.position.set(0, 0, 42); 
 
-    // 1. Initialize Points (Start with opacity 0)
-    barData.forEach((d, i) => {
-        const isVisible = (i === 0 || i === 1 || (i + 1) % 4 === 0);
-        if (isVisible) {
-            visibleIndices.push(i);
-            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            const cx = d.x + 8.42;
-            
-            circle.setAttribute('cx', cx); 
-            circle.setAttribute('cy', d.y); 
-            circle.setAttribute('r', 6);
-            circle.setAttribute('class', 'viz-point');
-            circle.setAttribute('id', `point-${i}`);
-            circle.style.opacity = 0; 
-            pointsLayer.appendChild(circle);
-        }
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 0);
 
-        const week = i + 1;
-        if (i === 0 || week % 4 === 0) {
-            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            text.setAttribute('x', d.x + 8.42); text.setAttribute('y', 585);
-            text.setAttribute('class', 'week-num'); text.setAttribute('id', `label-week-${i===0?0:week}`);
-            text.textContent = i===0?0:week; labelsGroup.appendChild(text);
-        }
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+    scene.add(ambientLight);
+    
+    const mainLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    mainLight.position.set(10, 20, 15);
+    scene.add(mainLight);
+
+    const rimLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    rimLight.position.set(-10, 5, -10);
+    scene.add(rimLight);
+
+    // --- SYRINGE MATERIALS ---
+    const glassMat = new THREE.MeshPhysicalMaterial({ color: 0x99ccff, metalness: 0.1, roughness: 0.05, transmission: 0.88, opacity: 1, transparent: true, clearcoat: 1.0, clearcoatRoughness: 0.1 });
+    const plasticMat = new THREE.MeshPhysicalMaterial({ color: 0x88bbff, metalness: 0.0, roughness: 0.2, transmission: 0.75, opacity: 1, transparent: true, depthWrite: false });
+    const rubberMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.9 }); 
+    const purpleMat = new THREE.MeshStandardMaterial({ color: 0x47315a, roughness: 0.4 }); 
+    const diluentMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transmission: 0.8, opacity: 0.8, transparent: true, roughness: 0 });
+    const powderMat = new THREE.MeshStandardMaterial({ color: 0xfdfdfd, roughness: 1.0 });
+    const capMat = new THREE.MeshPhysicalMaterial({ color: 0xeeeeee, metalness: 0.0, roughness: 0.3, transmission: 0.6, opacity: 1, transparent: true, depthWrite: false });
+
+    // --- ASSEMBLE SYRINGE ---
+    const syringeGroup = new THREE.Group();
+    const baseY = -2.0; 
+    syringeGroup.position.y = baseY;
+
+    const barrelGeo = new THREE.CylinderGeometry(0.7, 0.7, 8, 32);
+    const barrel = new THREE.Mesh(barrelGeo, glassMat);
+    syringeGroup.add(barrel);
+
+    const labelCanvas = document.createElement('canvas');
+    labelCanvas.width = 512; labelCanvas.height = 256;
+    const ctx = labelCanvas.getContext('2d');
+    ctx.fillStyle = '#47315a'; ctx.fillRect(0, 0, 512, 106); 
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'; ctx.fillRect(0, 106, 512, 150); 
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 36px Arial'; ctx.fillText('30 mg', 20, 50);
+    ctx.font = '24px Arial'; ctx.fillText('for 4-month administration', 130, 50);
+    ctx.fillStyle = '#333'; ctx.font = 'bold 38px Arial'; ctx.fillText('LUPRON DEPOT®', 20, 160);
+    ctx.font = '28px Arial'; ctx.fillText('(leuprolide acetate', 20, 200);
+    ctx.fillText('for depot suspension)', 20, 230);
+    
+    const labelTexture = new THREE.CanvasTexture(labelCanvas); 
+    const labelGeo = new THREE.CylinderGeometry(0.71, 0.71, 3.0, 32, 1, true, Math.PI*1.5, Math.PI); 
+    const labelMat = new THREE.MeshStandardMaterial({ map: labelTexture, side: THREE.DoubleSide, transparent: true, roughness: 0.5 });
+    const label = new THREE.Mesh(labelGeo, labelMat);
+    label.position.y = 1.2; 
+    syringeGroup.add(label);
+
+    const drugCakeGeo = new THREE.CylinderGeometry(0.65, 0.65, 1.5, 32);
+    const drugCake = new THREE.Mesh(drugCakeGeo, powderMat);
+    drugCake.position.y = 2.5; 
+    syringeGroup.add(drugCake);
+
+    const frontStopperGeo = new THREE.CylinderGeometry(0.68, 0.68, 0.3, 32);
+    const frontStopper = new THREE.Mesh(frontStopperGeo, rubberMat);
+    frontStopper.position.y = 3.5;
+    syringeGroup.add(frontStopper);
+
+    const midStopper1Geo = new THREE.CylinderGeometry(0.68, 0.68, 0.3, 32);
+    const midStopper1 = new THREE.Mesh(midStopper1Geo, rubberMat);
+    midStopper1.position.y = 0.4;
+    syringeGroup.add(midStopper1);
+
+    const midStopper2Geo = new THREE.CylinderGeometry(0.68, 0.68, 0.3, 32);
+    const midStopper2 = new THREE.Mesh(midStopper2Geo, rubberMat);
+    midStopper2.position.y = 0.9;
+    syringeGroup.add(midStopper2);
+
+    const diluentGeo = new THREE.CylinderGeometry(0.65, 0.65, 2.5, 32);
+    const diluent = new THREE.Mesh(diluentGeo, diluentMat);
+    diluent.position.y = -1.2;
+    syringeGroup.add(diluent);
+
+    const plungerGroup = new THREE.Group();
+    const endStopperGeo = new THREE.CylinderGeometry(0.68, 0.68, 0.5, 32);
+    const endStopper = new THREE.Mesh(endStopperGeo, rubberMat);
+    endStopper.position.y = -2.7; 
+    plungerGroup.add(endStopper);
+
+    const rodGeo = new THREE.CylinderGeometry(0.3, 0.3, 5, 16);
+    const rod = new THREE.Mesh(rodGeo, purpleMat); 
+    rod.position.y = -5.2;
+    plungerGroup.add(rod);
+
+    function BoxGeometryWidthRounded(width, height, depth, radius0, smoothness) {
+        let shape = new THREE.Shape();
+        let eps = 0.00001;
+        let radius = radius0 - eps;
+        shape.absarc( eps, eps, eps, -Math.PI / 2, -Math.PI, true );
+        shape.absarc( eps, height -  radius * 2, eps, Math.PI, Math.PI / 2, true );
+        shape.absarc( width - radius * 2, height -  radius * 2, eps, Math.PI / 2, 0, true );
+        shape.absarc( width - radius * 2, eps, eps, 0, -Math.PI / 2, true );
+        let geometry = new THREE.ExtrudeGeometry( shape, { depth: depth - radius0 * 2, bevelEnabled: true, bevelSegments: smoothness * 2, steps: 1, bevelSize: radius, bevelThickness: radius0, curveSegments: smoothness });
+        geometry.center();
+        return geometry;
+    }
+    const thumbGeo = new BoxGeometryWidthRounded(2.4, 0.3, 1.4, 0.1, 4); 
+    const thumb = new THREE.Mesh(thumbGeo, purpleMat); 
+    thumb.position.y = -7.7;
+    plungerGroup.add(thumb);
+    syringeGroup.add(plungerGroup);
+
+    const hubGeo = new THREE.CylinderGeometry(0.3, 0.7, 0.8, 32);
+    const hubMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, transparent: true, opacity: 0.9 });
+    const hub = new THREE.Mesh(hubGeo, hubMat);
+    hub.position.y = 4.4;
+    syringeGroup.add(hub);
+
+    const needleGeo = new THREE.CylinderGeometry(0.025, 0.025, 2.8, 16); 
+    const needleMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.8, roughness: 0.2 });
+    const needle = new THREE.Mesh(needleGeo, needleMat);
+    needle.position.y = 6.2;
+    syringeGroup.add(needle);
+
+    const capGeo = new THREE.CylinderGeometry(0.1, 0.28, 3.2, 32);
+    const needleCap = new THREE.Mesh(capGeo, capMat);
+    needleCap.position.y = 6.4; 
+    syringeGroup.add(needleCap);
+
+    const safetyGroup = new THREE.Group();
+    const safetyShieldGeo = new THREE.CylinderGeometry(0.85, 0.85, 4.0, 32);
+    const safetyShield = new THREE.Mesh(safetyShieldGeo, plasticMat);
+    safetyGroup.add(safetyShield);
+
+    const tabGeo = new THREE.BoxGeometry(1.0, 1.2, 0.5);
+    const tab = new THREE.Mesh(tabGeo, plasticMat);
+    tab.position.set(0, -1.4, 0.85);
+    safetyGroup.add(tab);
+
+    const arrowGeo = new THREE.ConeGeometry(0.2, 0.4, 3);
+    const arrowMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.5 });
+    const arrow = new THREE.Mesh(arrowGeo, arrowMat);
+    arrow.position.set(0, -1.4, 1.15); 
+    arrow.rotation.x = 0; 
+    safetyGroup.add(arrow);
+    
+    safetyGroup.position.y = 1.0;
+    syringeGroup.add(safetyGroup);
+
+    syringeGroup.rotation.y = -Math.PI / 6; 
+    scene.add(syringeGroup);
+
+    // --- CREATE TRUE AMBIENT OCCLUSION SHADOW ---
+    function createSoftShadowTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512; canvas.height = 512; 
+        const ctx = canvas.getContext('2d');
+        const gradient = ctx.createRadialGradient(
+            canvas.width / 2, canvas.height / 2, 0, 
+            canvas.width / 2, canvas.height / 2, canvas.width / 2
+        );
+        gradient.addColorStop(0, 'rgba(0,0,0,0.5)');
+        gradient.addColorStop(0.4, 'rgba(0,0,0,0.15)');
+        gradient.addColorStop(1, 'rgba(0,0,0,0)'); 
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.minFilter = THREE.LinearFilter;
+        return texture;
+    }
+    const shadowTexture = createSoftShadowTexture();
+    const shadowPlaneMat = new THREE.MeshBasicMaterial({
+        map: shadowTexture, transparent: true, opacity: 1, depthWrite: false, side: THREE.DoubleSide
+    });
+    const shadowPlaneGeo = new THREE.PlaneGeometry(12, 24);
+    const shadowPlane = new THREE.Mesh(shadowPlaneGeo, shadowPlaneMat);
+    shadowPlane.position.set(0, baseY, -3.0); 
+    scene.add(shadowPlane);
+
+    // --- MICROSPHERE SCENE (THE BLOB & PARTICLES) ---
+    const microScene = new THREE.Group();
+    microScene.visible = false;
+    scene.add(microScene);
+
+    // High Gloss Orange Material for the Blob
+    const microSphereMat = new THREE.MeshPhysicalMaterial({ 
+        color: 0xff6600, 
+        metalness: 0.1, 
+        roughness: 0.15, 
+        clearcoat: 1.0, 
+        clearcoatRoughness: 0.1,
+        transmission: 0.1, 
+        opacity: 1, 
+        transparent: true
     });
 
-    // Create Line Segments dynamically
-    for (let j = 0; j < visibleIndices.length - 1; j++) {
-        const idx1 = visibleIndices[j];
-        const idx2 = visibleIndices[j+1];
-        const d1 = barData[idx1];
-        const d2 = barData[idx2];
+    // 1. Build the "Blob" out of intersecting spheres
+    const blobGroup = new THREE.Group();
+    const blobParts = [];
+    
+    const coreGeo = new THREE.SphereGeometry(1.4, 32, 32);
+    const coreMesh = new THREE.Mesh(coreGeo, microSphereMat);
+    coreMesh.userData.basePos = new THREE.Vector3(0,0,0);
+    blobGroup.add(coreMesh);
+    blobParts.push(coreMesh);
+
+    const lumpGeo = new THREE.SphereGeometry(0.9, 32, 32);
+    for(let i=0; i<12; i++) {
+        const lump = new THREE.Mesh(lumpGeo, microSphereMat);
+        const phi = Math.acos( -1 + ( 2 * i ) / 12 );
+        const theta = Math.sqrt( 12 * Math.PI ) * phi;
+        const pos = new THREE.Vector3().setFromSphericalCoords(1.15, phi, theta);
         
-        const x1 = d1.x + 8.42;
-        const x2 = d2.x + 8.42;
+        lump.position.copy(pos);
+        lump.userData.basePos = pos.clone();
+        blobGroup.add(lump);
+        blobParts.push(lump);
+    }
+    microScene.add(blobGroup);
+
+    // 2. Build the Tiny Drug Particles (Maroon Color)
+    const particles = [];
+    const drugGeo = new THREE.SphereGeometry(0.08, 16, 16);
+    const drugMat = new THREE.MeshStandardMaterial({ color: 0x6a1c3a, roughness: 0.2 });
+
+    for(let i=0; i<150; i++) {
+        const p = new THREE.Mesh(drugGeo, drugMat);
+        p.scale.set(0,0,0); // start hidden inside
         
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute('x1', x1);
-        line.setAttribute('y1', d1.y); 
-        line.setAttribute('x2', x2);
-        line.setAttribute('y2', d2.y);
-        line.setAttribute('class', 'trend-segment');
-        line.setAttribute('id', `trend-seg-${j}`);
+        const u = Math.random();
+        const v = Math.random();
+        const theta = 2 * Math.PI * u;
+        const phi = Math.acos(2 * v - 1);
+        const dir = new THREE.Vector3().setFromSphericalCoords(1, phi, theta);
         
-        const len = Math.sqrt(Math.pow(x2-x1, 2) + Math.pow(d2.y-d1.y, 2));
-        line.style.strokeDasharray = len;
-        line.style.strokeDashoffset = len;
+        p.userData = {
+            currentPos: new THREE.Vector3(0,0,0),
+            target1: dir.clone().multiplyScalar(2.5 + Math.random() * 1.5), 
+            target2: dir.clone().multiplyScalar(3.5 + Math.random() * 3.5), 
+            offset: Math.random() * Math.PI * 2 
+        };
         
-        segmentsGroup.appendChild(line);
-        lineElements.push({ el: line, idx1, idx2 });
+        microScene.add(p);
+        particles.push(p);
     }
 
-    // --- Sliding Axis Initialization ---
-    const allTicks = [];
-    const unzoomedVals = [100, 200, 300, 400, 500, 600];
-    const zoomedVals = [10, 20, 30, 40, 50];
 
-    function createTick(val, type) {
-        const yPos = BASELINE - (val / 600) * MAX_H; 
-
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute('x1', 170); line.setAttribute('x2', 1108);
-        line.setAttribute('y1', yPos); line.setAttribute('y2', yPos);
-        line.setAttribute('class', 'grid-line');
-        if (type === 'z') line.style.opacity = 0; 
-        gridLayer.appendChild(line);
-
-        const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        txt.setAttribute('x', 160);
-        txt.setAttribute('y', yPos + 4.5);
-        txt.textContent = val;
-        txt.setAttribute('class', 'axis-text');
-        if (type === 'z') txt.style.opacity = 0; 
-        yAxisLayer.appendChild(txt);
-
-        allTicks.push({ val, type, elLine: line, elText: txt, currentY: yPos });
+    // --- PROJECTION HELPER FOR LABELS ---
+    function updateLabelPosition(mesh, elementId, yOffset = 0) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        const vector = new THREE.Vector3();
+        mesh.getWorldPosition(vector);
+        vector.y += yOffset; 
+        vector.project(camera);
+        const x = (vector.x * 0.5 + 0.5) * container.clientWidth;
+        const y = (vector.y * -0.5 + 0.5) * container.clientHeight;
+        el.style.left = `${x}px`; el.style.top = `${y}px`;
     }
 
-    unzoomedVals.forEach(v => createTick(v, 'unz'));
-    zoomedVals.forEach(v => createTick(v, 'z'));
-
-    function isElementFaded(step, idx) {
-        if (step === 3 && idx !== 1) return true;
-        if (step === 4 && idx < 3) return true;
-        if (step === 5 && idx !== 47) return true;
-        return false;
-    }
-
-    // --- ANIMATION CONTROLLER ---
-    let masterSyncTween = null;
-
-    function playIntro() {
-        if(hasPlayed) return;
-        hasPlayed = true;
-
-        const TOTAL_TIME = 2000; // Exact 2 second sequence
-        const STAGGER = TOTAL_TIME / lineElements.length;
-
-        // Immediately fade in the very first dot
-        const firstDotIdx = visibleIndices[0];
-        const firstDot = document.getElementById(`point-${firstDotIdx}`);
-        if(firstDot) {
-            firstDot.style.transition = 'opacity 0.3s ease';
-            firstDot.style.opacity = 1;
+    // --- RENDER LOOP ---
+    function animate() {
+        requestAnimationFrame(animate);
+        
+        if(!gsap.isTweening(syringeGroup.position) && syringeGroup.visible) {
+            const floatY = baseY + Math.sin(performance.now() * 0.0008) * 0.1; 
+            syringeGroup.position.y = floatY;
+            shadowPlane.position.y = floatY * 0.8; 
         }
 
-        // Left-to-right sweep sequence
-        lineElements.forEach((seg, j) => {
-            setTimeout(() => {
-                // 1. Draw this line segment
-                seg.el.style.opacity = 1;
-                seg.el.style.transition = `stroke-dashoffset ${STAGGER}ms linear`;
-                seg.el.style.strokeDashoffset = "0";
+        if(microScene.visible) {
+            microScene.rotation.y += 0.001;
+            microScene.rotation.x += 0.0005;
+            
+            particles.forEach(p => {
+                if(p.scale.x > 0.01) { 
+                    p.position.copy(p.userData.currentPos);
+                    p.position.y += Math.sin(performance.now() * 0.002 + p.userData.offset) * 0.15;
+                }
+            });
+        }
+        
+        if (syringeGroup.visible) {
+            updateLabelPosition(needle, 'label-needle');
+            updateLabelPosition(safetyGroup, 'label-safety', -0.5); 
+            updateLabelPosition(frontStopper, 'label-front-stopper');
+            updateLabelPosition(barrel, 'label-barrel', 2); 
+            updateLabelPosition(drugCake, 'label-powder');
+            updateLabelPosition(midStopper1, 'label-mid-stoppers', 0.25); 
+            updateLabelPosition(diluent, 'label-diluent');
+            updateLabelPosition(endStopper, 'label-end-stopper');
+            updateLabelPosition(rod, 'label-plunger', -1);
+            updateLabelPosition(thumb, 'label-finger-grip');
+        }
+        if (microScene.visible) {
+            updateLabelPosition(blobGroup, 'label-microsphere', -2.5);
+        }
+
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    // --- TIMEOUT & STATE MANAGEMENT ---
+    let stepTimeouts = [];
+    let activeMixTL = null;
+    let currentPhase = 'macro'; 
+
+    function resetOverlays() {
+        // Clear lingering timeouts from previous steps
+        stepTimeouts.forEach(clearTimeout);
+        stepTimeouts = [];
+
+        // Kill active mix timeline if user jumps away early
+        if (activeMixTL) {
+            activeMixTL.kill();
+            activeMixTL = null;
+        }
+
+        document.querySelectorAll('.annotation').forEach(el => el.classList.remove('visible'));
+        document.querySelectorAll('.schematic-label').forEach(el => el.classList.remove('show'));
+    }
+
+    function applyMicroState(step) {
+        if(step === 8) {
+            blobParts.forEach(s => {
+                gsap.to(s.position, {x: s.userData.basePos.x, y: s.userData.basePos.y, z: s.userData.basePos.z, duration: 1});
+                gsap.to(s.scale, {x: 1, y: 1, z: 1, duration: 1});
+            });
+            particles.forEach(p => {
+                gsap.to(p.scale, {x: 0, y: 0, z: 0, duration: 0.5});
+                gsap.to(p.userData.currentPos, {x: 0, y: 0, z: 0, duration: 1});
+            });
+        }
+        else if (step === 9) {
+            blobParts.forEach(s => {
+                gsap.to(s.position, {x: s.userData.basePos.x, y: s.userData.basePos.y, z: s.userData.basePos.z, duration: 1});
+                gsap.to(s.scale, {x: 1, y: 1, z: 1, duration: 1});
+            });
+            particles.forEach((p, i) => {
+                if(i < 50) {
+                    gsap.to(p.scale, {x: 1, y: 1, z: 1, duration: 1, delay: Math.random()*0.5});
+                    gsap.to(p.userData.currentPos, {x: p.userData.target1.x, y: p.userData.target1.y, z: p.userData.target1.z, duration: 1.5, ease:"power2.out", delay: Math.random()*0.5});
+                } else {
+                    gsap.to(p.scale, {x: 0, y: 0, z: 0, duration: 0.5});
+                    gsap.to(p.userData.currentPos, {x: 0, y: 0, z: 0, duration: 1});
+                }
+            });
+        }
+        else if (step === 10) {
+            blobParts.forEach(s => {
+                gsap.to(s.position, {x: s.userData.basePos.x * 1.8, y: s.userData.basePos.y * 1.8, z: s.userData.basePos.z * 1.8, duration: 2, ease:"power2.inOut"});
+                gsap.to(s.scale, {x: 0.3, y: 0.3, z: 0.3, duration: 2}); 
+            });
+            particles.forEach((p, i) => {
+                gsap.to(p.scale, {x: 1, y: 1, z: 1, duration: 1, delay: Math.random()*0.5});
+                gsap.to(p.userData.currentPos, {x: p.userData.target2.x, y: p.userData.target2.y, z: p.userData.target2.z, duration: 2, ease:"power2.out", delay: Math.random()*0.5});
+            });
+        }
+    }
+
+    function triggerStepAnimation(stepId) {
+        resetOverlays();
+        const config = { duration: 1.2, ease: "power2.inOut" }; 
+        const stepNum = parseInt(stepId.split('-')[1]);
+        const schematicLabels = document.querySelectorAll('.schematic-label');
+        
+        if (stepNum >= 8) {
+            headerH2.innerText = "Lyophilized Microsphere Technology";
+            headerP.innerText = "PRODUCT X is formulated with lyophilized microsphere technology, gradually releasing active drug from each microsphere over time.";
+            
+            if (currentPhase === 'macro') {
+                gsap.to(camera.position, { duration: 1.0, x: 0, y: 7.5, z: 2, ease: "power2.in", onComplete: () => {
+                    syringeGroup.visible = false;
+                    shadowPlane.visible = false;
+                    microScene.visible = true;
+                    camera.position.set(0, 0, 10); 
+                    applyMicroState(stepNum);
+                    currentPhase = 'micro';
+                    stepTimeouts.push(setTimeout(() => document.getElementById('label-microsphere').classList.add('show'), 200));
+                }});
+            } else {
+                applyMicroState(stepNum);
+                stepTimeouts.push(setTimeout(() => document.getElementById('label-microsphere').classList.add('show'), 100));
+            }
+        } else {
+            headerH2.innerText = "PRODUCT X Prefilled Injection Device";
+            headerP.innerText = "PRODUCT X is the only ADT for aPC that uses lyophilized microsphere technology, which controls the release of leuprolide acetate to achieve deep and sustained testosterone suppression.";
+            
+            if (currentPhase === 'micro') {
+                microScene.visible = false;
+                syringeGroup.visible = true;
+                shadowPlane.visible = true;
+                currentPhase = 'macro';
+            }
+
+            if (stepNum === 1) {
+                document.querySelectorAll('.schematic-label:not(#label-microsphere)').forEach(el => el.classList.add('show'));
                 
-                // 2. Fade in the destination dot as the line approaches it
-                setTimeout(() => {
-                    const pt = document.getElementById(`point-${seg.idx2}`);
-                    if(pt) {
-                        pt.style.transition = 'opacity 0.3s ease';
-                        pt.style.opacity = 1;
-                    }
-                }, STAGGER * 0.5); 
+                gsap.to(camera.position, { ...config, x: 0, y: 0, z: 42 });
+                gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 6, z: 0 });
+                gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
+                
+                gsap.to(safetyGroup.position, { ...config, y: 1.0 });
+                gsap.to(plungerGroup.position, { ...config, y: 0 });
+                gsap.to(diluent.position, { ...config, y: -1.2 });
+                gsap.to(midStopper1.position, { ...config, y: 0.4 });
+                gsap.to(midStopper2.position, { ...config, y: 0.9 });
+                gsap.to(drugCake.scale, { ...config, y: 1, x: 1, z: 1 });
+                gsap.to(drugCake.position, { ...config, y: 2.5 });
 
-            }, j * STAGGER);
-        });
+                gsap.to(needleCap.position, { ...config, y: 6.4 });
+                gsap.to(needleCap.material, { duration: 0.8, opacity: 1 });
 
-        // Switch to Interactive Mode once draw is complete
-        setTimeout(() => {
-            introComplete = true;
-            document.querySelectorAll('.viz-point').forEach(p => {
-                p.style.transition = ''; // clear intro transitions
-                p.classList.add('interactive-mode');
-            });
-            lineElements.forEach(seg => {
-                seg.el.style.transition = '';
-                seg.el.classList.add('interactive-mode');
-                seg.el.style.strokeDasharray = 'none'; 
-            });
-            
-            // Re-trigger update in case they scrolled slightly during the 2s intro
-            const activeBlock = document.querySelector('.text-block.active');
-            if (activeBlock) update(activeBlock.id);
-            
-        }, TOTAL_TIME + 100);
-    }
-
-    // --- SCROLL OBSERVER ---
-    function update(blockId) {
-        if (!introComplete) return; 
-
-        const step = parseInt(blockId.split('-')[1]);
-        const isZoomed = step >= 6;
-        const isDeep = step === 7;
-
-        document.querySelectorAll('.overlay-group').forEach(g => g.classList.remove('visible'));
-        const activeOverlay = document.getElementById(`overlay-b${step}`);
-        if (activeOverlay) activeOverlay.classList.add('visible');
-
-        const castrate = document.getElementById('castrate-highlight');
-        const deep = document.getElementById('deep-suppression-highlight');
-        const l50 = document.getElementById('label-50-zoom');
-        const l20 = document.getElementById('label-20-zoom');
-        const tCastrate = document.getElementById('tag-castrate');
-        const tDeep = document.getElementById('tag-deep');
-        
-        const injRects = document.querySelectorAll('.inj-gradient-rect');
-        injRects.forEach(r => r.style.opacity = (step === 2) ? 1 : 0);
-
-        if (step >= 4) {
-            castrate.classList.add('zone-visible');
-            if (isZoomed) {
-                castrate.setAttribute('y', 137.5); castrate.setAttribute('height', 422); castrate.classList.add('zone-zoom');
-                tCastrate.style.opacity = 1;
-                if (isDeep) {
-                    deep.classList.add('orange-visible'); deep.setAttribute('y', 390.7); deep.setAttribute('height', 168.8);
-                    tDeep.style.opacity = 1;
-                } else {
-                    deep.classList.remove('orange-visible'); tDeep.style.opacity = 0;
-                }
             } else {
-                castrate.setAttribute('y', 524.5); castrate.setAttribute('height', 35); castrate.classList.remove('zone-zoom');
-                tCastrate.style.opacity = 0;
-                deep.classList.remove('orange-visible'); tDeep.style.opacity = 0;
-            }
-        } else { castrate.classList.remove('zone-visible'); deep.classList.remove('orange-visible'); tCastrate.style.opacity = 0; tDeep.style.opacity = 0;}
+                gsap.to(needleCap.position, { ...config, y: 10.0 });
+                gsap.to(needleCap.material, { duration: 0.8, opacity: 0 });
 
-        // SETUP TARGETS FOR JS TWEEN
-        let targetYs = new Array(barData.length).fill(0);
-        visibleIndices.forEach((idx) => {
-            const d = barData[idx];
-            targetYs[idx] = isZoomed ? (BASELINE - ((d.h / 422 * 600) / 50) * 422) : d.y;
-        });
+                if (stepNum === 2) {
+                    gsap.to(camera.position, { ...config, x: 0, y: 5.5, z: 12 });
+                    gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 4, z: 0 });
+                    gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
+                    gsap.to(safetyGroup.position, { ...config, y: 1.0 });
+                    stepTimeouts.push(setTimeout(() => document.getElementById('anno-needle').classList.add('visible'), 600));
 
-        // Setup Axis targets and apply CSS styling
-        allTicks.forEach(t => {
-            let max = isZoomed ? 50 : 600;
-            t.targetY = BASELINE - (t.val / max) * MAX_H;
-            t.startY = t.currentY;
+                } else if (stepNum === 3) {
+                    gsap.to(camera.position, { ...config, x: 0, y: 3.5, z: 15 });
+                    gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 4, z: 0 });
+                    gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
+                    gsap.to(safetyGroup.position, { duration: 0.8, y: 5.7, ease: "back.out(1.2)" });
+                    stepTimeouts.push(setTimeout(() => document.getElementById('anno-safety').classList.add('visible'), 400));
 
-            if (isZoomed) {
-                if (t.type === 'unz') {
-                    t.elLine.style.opacity = 0;
-                    t.elText.style.opacity = 0;
-                } else {
-                    t.elText.style.opacity = 1;
-                    if (t.val === 50) {
-                        t.elLine.style.stroke = '#888'; t.elLine.style.opacity = 0.8; t.elLine.style.strokeWidth = 1;
-                        t.elText.classList.add('y-50-emphasis');
-                    } else if (isDeep && t.val === 20) {
-                        t.elLine.style.stroke = '#ff8c00'; t.elLine.style.opacity = 0.8; t.elLine.style.strokeWidth = 1;
-                        t.elText.classList.add('y-20-emphasis');
-                    } else {
-                        t.elLine.style.stroke = '#888'; t.elLine.style.opacity = 0.2; t.elLine.style.strokeWidth = 0.3;
-                        t.elText.classList.remove('y-50-emphasis');
-                        t.elText.classList.remove('y-20-emphasis');
-                    }
+                } else if (stepNum === 4) {
+                    gsap.to(camera.position, { ...config, x: 0, y: 2.5, z: 12 });
+                    gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 6, z: 0 }); 
+                    gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
+                    gsap.to(safetyGroup.position, { ...config, y: 1.0 }); 
+                    stepTimeouts.push(setTimeout(() => document.getElementById('anno-microspheres').classList.add('visible'), 600));
+
+                } else if (stepNum === 5) {
+                    gsap.to(camera.position, { ...config, x: 0, y: -1.2, z: 12 });
+                    gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 6, z: 0 });
+                    gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
+                    gsap.to(safetyGroup.position, { ...config, y: 1.0 });
+                    gsap.to(plungerGroup.position, { ...config, y: 0 });
+                    gsap.to(diluent.position, { ...config, y: -1.2 });
+                    gsap.to(midStopper1.position, { ...config, y: 0.4 });
+                    gsap.to(midStopper2.position, { ...config, y: 0.9 });
+                    gsap.to(drugCake.scale, { ...config, y: 1, x: 1, z: 1 });
+                    gsap.to(drugCake.position, { ...config, y: 2.5 });
+                    stepTimeouts.push(setTimeout(() => document.getElementById('anno-diluent').classList.add('visible'), 600));
+
+                } else if (stepNum === 6) {
+                    gsap.to(camera.position, { ...config, x: 0, y: 0.5, z: 24 });
+                    gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 6, z: 0 });
+                    gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
+                    gsap.to(safetyGroup.position, { ...config, y: 1.0 });
+                    gsap.to(plungerGroup.position, { ...config, y: 0 });
+                    gsap.to(diluent.position, { ...config, y: -1.2 });
+                    gsap.to(midStopper1.position, { ...config, y: 0.4 });
+                    gsap.to(midStopper2.position, { ...config, y: 0.9 });
+                    gsap.to(drugCake.scale, { ...config, y: 1, x: 1, z: 1 });
+                    gsap.to(drugCake.position, { ...config, y: 2.5 });
+                    stepTimeouts.push(setTimeout(() => document.getElementById('anno-dual').classList.add('visible'), 600));
+
+                } else if (stepNum === 7) {
+                    gsap.to(camera.position, { ...config, x: 0, y: -4, z: 24 });
+                    gsap.to(syringeGroup.rotation, { ...config, x: 0, y: 0, z: 0 });
+                    
+                    activeMixTL = gsap.timeline({defaults: {ease: "power2.inOut", duration: 1.0}});
+                    activeMixTL.to(plungerGroup.position, { y: 2.5 }, 0);
+                    activeMixTL.to(diluent.position, { y: 1.3 }, 0);
+                    activeMixTL.to(midStopper1.position, { y: 2.9 }, 0.2);
+                    activeMixTL.to(midStopper2.position, { y: 3.4 }, 0.2);
+                    activeMixTL.to(drugCake.scale, { y: 0.1, x: 0.8, z: 0.8 }, 0.3);
+                    activeMixTL.to(drugCake.position, { y: 3.8 }, 0.3);
+                    activeMixTL.to(syringeGroup.position, { x: 0.2, yoyo: true, repeat: 7, duration: 0.08, ease: "sine.inOut" }, 1.2);
+                    activeMixTL.to(syringeGroup.position, { x: 0, y: baseY, duration: 0.1 }, 1.8);
+
+                    stepTimeouts.push(setTimeout(() => document.getElementById('anno-plunger').classList.add('visible'), 2000));
                 }
-            } else {
-                if (t.type === 'unz') {
-                    t.elLine.style.stroke = '#888'; t.elLine.style.opacity = 0.2; t.elLine.style.strokeWidth = 0.3;
-                    t.elText.style.opacity = 1;
-                } else {
-                    t.elLine.style.opacity = 0;
-                    t.elText.style.opacity = 0;
-                    t.elText.classList.remove('y-50-emphasis', 'y-20-emphasis');
-                }
-            }
-        });
-
-        // START MASTER SYNC TWEEN
-        if (masterSyncTween) cancelAnimationFrame(masterSyncTween);
-        let startYs = [...currentYs];
-        let startTime = performance.now();
-
-        function runSyncTween(time) {
-            let p = Math.min((time - startTime) / 800, 1);
-            let eased = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; 
-
-            // Sync Data Points
-            visibleIndices.forEach(idx => {
-                currentYs[idx] = startYs[idx] + (targetYs[idx] - startYs[idx]) * eased;
-                const pt = document.getElementById(`point-${idx}`);
-                if (pt) pt.setAttribute('cy', currentYs[idx]);
-            });
-
-            // Sync Lines
-            lineElements.forEach(seg => {
-                seg.el.setAttribute('y1', currentYs[seg.idx1]);
-                seg.el.setAttribute('y2', currentYs[seg.idx2]);
-            });
-
-            // Sync Axis Sliding
-            allTicks.forEach(t => {
-                t.currentY = t.startY + (t.targetY - t.startY) * eased;
-                t.elLine.setAttribute('y1', t.currentY);
-                t.elLine.setAttribute('y2', t.currentY);
-                t.elText.setAttribute('y', t.currentY + 4.5);
-            });
-
-            if (p < 1) {
-                masterSyncTween = requestAnimationFrame(runSyncTween);
-            } else {
-                masterSyncTween = null;
             }
         }
-        masterSyncTween = requestAnimationFrame(runSyncTween);
-
-        // HANDLE OPACITIES & COLORS VIA STANDARD CSS CLASSES
-        visibleIndices.forEach((idx) => {
-            const pt = document.getElementById(`point-${idx}`);
-            if (isZoomed) {
-                pt.style.opacity = (idx < 3) ? 0 : 1;
-                pt.classList.remove('faded-point');
-            } else { 
-                pt.style.opacity = 1;
-                if(isElementFaded(step, idx)) pt.classList.add('faded-point');
-                else pt.classList.remove('faded-point');
-            }
-        });
-
-        lineElements.forEach((seg) => {
-            if (isZoomed) {
-                seg.el.classList.remove('faded-line');
-                if (seg.idx1 < 3 && seg.idx2 < 3) seg.el.style.opacity = 0;
-                else seg.el.style.opacity = 1;
-            } else {
-                seg.el.style.opacity = 1;
-                let isFaded = false;
-                if (step === 4) {
-                    isFaded = isElementFaded(step, seg.idx1) || isElementFaded(step, seg.idx2);
-                } else {
-                    isFaded = isElementFaded(step, seg.idx1) && isElementFaded(step, seg.idx2);
-                }
-
-                if(isFaded) seg.el.classList.add('faded-line');
-                else seg.el.classList.remove('faded-line');
-            }
-        });
-
-        document.querySelectorAll('.week-num').forEach(l => l.classList.remove('highlight-week'));
-        if (step === 2) [0, 24, 48].forEach(w => {
-            const el = document.getElementById(`label-week-${w}`);
-            if(el) el.classList.add('highlight-week');
-        });
     }
 
     const obs = new IntersectionObserver(e => {
         e.forEach(entry => { 
             if(entry.isIntersecting) { 
-                if(entry.target.id === 'block-1' && !hasPlayed) {
-                    playIntro();
-                }
-                
-                // Content Box Activation
                 document.querySelectorAll('.text-block').forEach(b => b.classList.remove('active'));
                 entry.target.classList.add('active'); 
+                triggerStepAnimation(entry.target.id);
                 
-                // Update Navigation Dots
                 document.querySelectorAll('.nav-dot').forEach(dot => dot.classList.remove('active'));
                 const activeDot = document.querySelector(`.nav-dot[data-target="${entry.target.id}"]`);
                 if(activeDot) activeDot.classList.add('active');
-
-                if (introComplete) update(entry.target.id);
             } 
         });
     }, { root: document.getElementById('scroll-rail'), threshold: 0.6 });
     document.querySelectorAll('.text-block').forEach(b => obs.observe(b));
 
-    // --- NAV DOT CLICK LISTENER ---
     document.querySelectorAll('.nav-dot').forEach(dot => {
         dot.addEventListener('click', () => {
             const targetId = dot.getAttribute('data-target');
             const targetElement = document.getElementById(targetId);
-            if(targetElement) {
-                targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+            targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
     });
-    
-    window.onload = () => setTimeout(() => { if(!hasPlayed) playIntro(); }, 100);
 
 </script>
 </body>
