@@ -284,8 +284,8 @@
         <div class="model-card" id="model-container">
             
             <div class="viewport-header" id="main-header">
-                <h2>PRODUCT X Prefilled Injection Device</h2>
-                <p>PRODUCT X is the only ADT for aPC that uses lyophilized microsphere technology, which controls the release of leuprolide acetate to achieve deep and sustained testosterone suppression.</p>
+                <h2>Lupron Depot Prefilled Injection Device</h2>
+                <p>Lupron Depot is the only ADT for aPC that uses lyophilized microsphere technology, which controls the release of leuprolide acetate to achieve deep and sustained testosterone suppression.</p>
             </div>
 
             <canvas id="webgl-canvas"></canvas>
@@ -317,8 +317,8 @@
         
         <div class="text-block" id="step-1">
             <div class="content-box">
-                <span class="block-label">PRODUCT X Prefilled Dual-Chamber Syringe</span>
-                <p>An interactive exploration of Product X's proprietary delivery system.</p>
+                <span class="block-label">Lupron Depot Prefilled Dual-Chamber Syringe</span>
+                <p>An interactive exploration of Lupron Depot's proprietary delivery system.</p>
                 <div class="scroll-prompt">
                     Scroll to continue
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
@@ -340,7 +340,7 @@
         <div class="text-block" id="step-4">
             <div class="content-box">
                 <span class="block-label">Lyophilized microsphere technology</span>
-                <p>Lyophilized microsphere technology in PRODUCT X makes it possible to use a prefilled dual-chamber syringe for simple preparation and administration.</p>
+                <p>Lyophilized microsphere technology in Lupron Depot makes it possible to use a prefilled dual-chamber syringe for simple preparation and administration.</p>
             </div>
         </div>
         <div class="text-block" id="step-5">
@@ -761,7 +761,7 @@
         
         if (stepNum >= 8) {
             headerH2.innerText = "Lyophilized Microsphere Technology";
-            headerP.innerText = "PRODUCT X is formulated with lyophilized microsphere technology, gradually releasing active drug from each microsphere over time.";
+            headerP.innerText = "Lupron Depot is formulated with lyophilized microsphere technology, gradually releasing active drug from each microsphere over time.";
             
             if (currentPhase === 'macro') {
                 gsap.to(camera.position, { duration: 1.0, x: 0, y: 7.5, z: 2, ease: "power2.in", onComplete: () => {
@@ -778,8 +778,8 @@
                 stepTimeouts.push(setTimeout(() => document.getElementById('label-microsphere').classList.add('show'), 100));
             }
         } else {
-            headerH2.innerText = "PRODUCT X Prefilled Injection Device";
-            headerP.innerText = "PRODUCT X is the only ADT for aPC that uses lyophilized microsphere technology, which controls the release of leuprolide acetate to achieve deep and sustained testosterone suppression.";
+            headerH2.innerText = "Lupron Depot Prefilled Injection Device";
+            headerP.innerText = "Lupron Depot is the only ADT for aPC that uses lyophilized microsphere technology, which controls the release of leuprolide acetate to achieve deep and sustained testosterone suppression.";
             
             if (currentPhase === 'micro') {
                 microScene.visible = false;
