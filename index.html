@@ -72,7 +72,7 @@
             outline: none;
         }
 
-        /* --- Global Dot Navigation --- */
+        /* --- Global Dot Navigation Split into Sections --- */
         .scroll-nav {
             position: fixed;
             left: 30px;
@@ -121,7 +121,7 @@
             color: #ff6600;
         }
         .micro-section .nav-dot {
-            background: rgba(255, 102, 0, 0.25); /* #ff6600 */
+            background: rgba(255, 102, 0, 0.25); 
         }
         .micro-section .nav-dot:hover {
             background: rgba(255, 102, 0, 0.6);
@@ -156,7 +156,6 @@
         #anno-needle { top: 35%; right: 35%; }
         #anno-safety { top: 25%; left: 25%; }
         #anno-microspheres { top: 38%; right: 28%; }
-        #anno-diluent { top: 55%; left: 28%; }
         #anno-dual { top: 48%; right: 22%; }
         #anno-plunger { bottom: 15%; right: 25%; }
 
@@ -251,7 +250,6 @@
             #anno-needle { top: 30%; right: 15%; }
             #anno-safety { top: 25%; left: 5%; }
             #anno-microspheres { top: 35%; right: 5%; }
-            #anno-diluent { top: 45%; left: 5%; }
             #anno-dual { top: 40%; right: 5%; }
             #anno-plunger { bottom: 20%; right: 5%; }
         }
@@ -268,14 +266,13 @@
         <div class="nav-dot" data-target="step-4"></div>
         <div class="nav-dot" data-target="step-5"></div>
         <div class="nav-dot" data-target="step-6"></div>
-        <div class="nav-dot" data-target="step-7"></div>
     </div>
     
     <div class="nav-section micro-section">
         <div class="nav-label">Micro</div>
+        <div class="nav-dot" data-target="step-7"></div>
         <div class="nav-dot" data-target="step-8"></div>
         <div class="nav-dot" data-target="step-9"></div>
-        <div class="nav-dot" data-target="step-10"></div>
     </div>
 </div>
 
@@ -285,7 +282,7 @@
             
             <div class="viewport-header" id="main-header">
                 <h2>STREAMLINED DELIVERY SYSTEM</h2>
-                <p>The LUPRON DEPOT prefilled dual-chamber syringe with safety lock is the preferred ADT delivery system, as it reduces mixing errors and administration complexities compared with other ADT injectables.</p>
+                <p>The Lupron Depot prefilled dual-chamber syringe with safety lock is the preferred ADT delivery system, as it reduces mixing errors and administration complexities compared with other ADT injectables.</p>
             </div>
 
             <canvas id="webgl-canvas"></canvas>
@@ -293,7 +290,6 @@
             <div id="label-needle" class="schematic-label left"><span>Needle & Cap</span></div>
             <div id="label-front-stopper" class="schematic-label left"><span>Front Stopper</span></div>
             <div id="label-powder" class="schematic-label left"><span>Leuprolide Acetate<br>Microsphere Powder</span></div>
-            <div id="label-diluent" class="schematic-label left"><span>Diluent</span></div>
             <div id="label-plunger" class="schematic-label left"><span>Plunger</span></div>
             
             <div id="label-safety" class="schematic-label right"><span>LuproLoc®<br>Safety Device</span></div>
@@ -307,7 +303,6 @@
             <div id="anno-needle" class="annotation"><div class="annotation-title">Fine 23-gauge needle</div></div>
             <div id="anno-safety" class="annotation"><div class="annotation-title">LuproLoc® safety</div></div>
             <div id="anno-microspheres" class="annotation"><div class="annotation-title">Lyophilized microsphere technology</div></div>
-            <div id="anno-diluent" class="annotation"><div class="annotation-title">Diluent</div></div>
             <div id="anno-dual" class="annotation"><div class="annotation-title">Prefilled dual-chamber syringe</div></div>
             <div id="anno-plunger" class="annotation"><div class="annotation-title">Plunger</div></div>
         </div>
@@ -327,54 +322,48 @@
         </div>
         <div class="text-block" id="step-2">
             <div class="content-box">
-                <span class="block-label">Fine 23-gauge needle</span>
-                <p>LUPRON DEPOT uses a thin 23-gauge, 1.5-inch intramuscular needles for all dosing options. This may improve injection tolerability for patients.</p>
+                <span class="block-label">Thinnest Needle Among GnRH Agonists</span>
+                <p>LUPRON DEPOT URO uses a thin 23-gauge, 1.5-inch intramuscular needles for all dosing options. This may improve injection tolerability for patients.</p>
             </div>
         </div>
         <div class="text-block" id="step-3">
             <div class="content-box">
-                <span class="block-label">LuproLoc® safety</span>
-                <p>After withdrawing the syringe, activate the LuproLoc® safety device by pushing the arrow on the lock upward toward the needle tip with your thumb or finger until the needle cover fully extends and a CLICK is heard or felt.</p>
+                <span class="block-label">Built‑In LuproLoc Needle Protection for Confident Administration</span>
+                <p>By automatically locking into place after injection, the LuproLoc® safety device helps prevent accidental needle contact, offering reliable protection for clinicians during routine ADT administration; and providing a confirming CLICK that signals the needle is securely covered.</p>
             </div>
         </div>
         <div class="text-block" id="step-4">
             <div class="content-box">
-                <span class="block-label">Lyophilized microsphere technology</span>
-                <p>Lyophilized microsphere technology in Lupron Depot makes it possible to use a prefilled dual-chamber syringe for simple preparation and administration.</p>
+                <span class="block-label">Lyophilized Microsphere Technology for Sustained Suppression</span>
+                <p>As the only ADT for advanced prostate cancer using lyophilized microsphere technology, LUPRON DEPOT URO enables the controlled release of leuprolide acetate to achieve sustained testosterone suppression. </p>
             </div>
         </div>
         <div class="text-block" id="step-5">
             <div class="content-box">
-                <span class="block-label">Diluent</span>
-                <p>Sterile liquid used to hydrate and dissolve the lyophilized microsphere powder.</p>
+                <span class="block-label">Prefilled dual-chamber syringe for simple and consistent preparation and administration</span>
+                <p>The LUPRON DEPOT URO prefilled dual‑chamber syringe features a closed, dual‑chamber system that stores the diluent and lyophilized microsphere powder separately and enables in‑syringe mixing prior to injection, helping reduce mixing errors and administration complexities in ADT workflows.</p>
             </div>
         </div>
         <div class="text-block" id="step-6">
             <div class="content-box">
-                <span class="block-label">Prefilled dual-chamber syringe</span>
-                <p>Dual‑chamber, prefilled syringe system that stores the diluent and lyophilized microsphere powder separately. Activating the plunger releases the diluent for in‑syringe mixing prior to injection.</p>
-            </div>
-        </div>
-        <div class="text-block" id="step-7">
-            <div class="content-box">
-                <span class="block-label">Plunger</span>
-                <p>Screw the white plunger into the end stopper to release the diluent into the lyophilized microsphere powder. Gently shake the prefilled dual‑chamber syringe to mix—no external mixing required.</p>
+                <span class="block-label">No external mixing required</span>
+                <p>The dual‑chamber design uses an integrated plunger mechanism that enables complete in‑syringe mixing, eliminating the need for external mixing and helping deliver a simpler, more consistent preparation process.</p>
             </div>
         </div>
         
-        <div class="text-block" id="step-8">
+        <div class="text-block" id="step-7">
             <div class="content-box">
                 <span class="block-label">Hydration</span>
                 <p>Once the formulation is mixed and injected, water and body fluids begin soaking into each microsphere, causing it to swell.</p>
             </div>
         </div>
-        <div class="text-block" id="step-9">
+        <div class="text-block" id="step-8">
             <div class="content-box">
                 <span class="block-label">Initial Release: Diffusion</span>
                 <p>Leuprolide acetate moves from areas of high concentration to areas of low concentration, providing a controlled release of active drug from each microsphere.</p>
             </div>
         </div>
-        <div class="text-block" id="step-10">
+        <div class="text-block" id="step-9">
             <div class="content-box">
                 <span class="block-label">Extended Release: Bioerosion</span>
                 <p>Over the set dosing period, each microsphere continues to break down and release remaining active drug.</p>
@@ -434,7 +423,7 @@
     ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'; ctx.fillRect(0, 106, 512, 150); 
     ctx.fillStyle = '#fff'; ctx.font = 'bold 36px Arial'; ctx.fillText('30 mg', 20, 50);
     ctx.font = '24px Arial'; ctx.fillText('for 4-month administration', 130, 50);
-    ctx.fillStyle = '#333'; ctx.font = 'bold 38px Arial'; ctx.fillText('LUPRON DEPOT®', 20, 160);
+    ctx.fillStyle = '#333'; ctx.font = 'bold 38px Arial'; ctx.fillText('Lupron Depot®', 20, 160);
     ctx.font = '28px Arial'; ctx.fillText('(leuprolide acetate', 20, 200);
     ctx.fillText('for depot suspension)', 20, 230);
     
@@ -676,7 +665,6 @@
             updateLabelPosition(barrel, 'label-barrel', 2); 
             updateLabelPosition(drugCake, 'label-powder');
             updateLabelPosition(midStopper1, 'label-mid-stoppers', 0.25); 
-            updateLabelPosition(diluent, 'label-diluent');
             updateLabelPosition(endStopper, 'label-end-stopper');
             updateLabelPosition(rod, 'label-plunger', -1);
             updateLabelPosition(thumb, 'label-finger-grip');
@@ -716,7 +704,7 @@
     }
 
     function applyMicroState(step) {
-        if(step === 8) {
+        if(step === 7) {
             blobParts.forEach(s => {
                 gsap.to(s.position, {x: s.userData.basePos.x, y: s.userData.basePos.y, z: s.userData.basePos.z, duration: 1});
                 gsap.to(s.scale, {x: 1, y: 1, z: 1, duration: 1});
@@ -726,7 +714,7 @@
                 gsap.to(p.userData.currentPos, {x: 0, y: 0, z: 0, duration: 1});
             });
         }
-        else if (step === 9) {
+        else if (step === 8) {
             blobParts.forEach(s => {
                 gsap.to(s.position, {x: s.userData.basePos.x, y: s.userData.basePos.y, z: s.userData.basePos.z, duration: 1});
                 gsap.to(s.scale, {x: 1, y: 1, z: 1, duration: 1});
@@ -741,7 +729,7 @@
                 }
             });
         }
-        else if (step === 10) {
+        else if (step === 9) {
             blobParts.forEach(s => {
                 gsap.to(s.position, {x: s.userData.basePos.x * 1.8, y: s.userData.basePos.y * 1.8, z: s.userData.basePos.z * 1.8, duration: 2, ease:"power2.inOut"});
                 gsap.to(s.scale, {x: 0.3, y: 0.3, z: 0.3, duration: 2}); 
@@ -759,7 +747,7 @@
         const stepNum = parseInt(stepId.split('-')[1]);
         const schematicLabels = document.querySelectorAll('.schematic-label');
         
-        if (stepNum >= 8) {
+        if (stepNum >= 7) {
             headerH2.innerText = "Lyophilized Microsphere Technology";
             headerP.innerText = "Lupron Depot is formulated with lyophilized microsphere technology, gradually releasing active drug from each microsphere over time.";
             
@@ -779,7 +767,7 @@
             }
         } else {
             headerH2.innerText = "STREAMLINED DELIVERY SYSTEM";
-            headerP.innerText = "The LUPRON DEPOT prefilled dual-chamber syringe with safety lock is the preferred ADT delivery system, as it reduces mixing errors and administration complexities compared with other ADT injectables.";
+            headerP.innerText = "The Lupron Depot prefilled dual-chamber syringe with safety lock is the preferred ADT delivery system, as it reduces mixing errors and administration complexities compared with other ADT injectables.";
             
             if (currentPhase === 'micro') {
                 microScene.visible = false;
@@ -832,19 +820,6 @@
                     stepTimeouts.push(setTimeout(() => document.getElementById('anno-microspheres').classList.add('visible'), 600));
 
                 } else if (stepNum === 5) {
-                    gsap.to(camera.position, { ...config, x: 0, y: -1.2, z: 12 });
-                    gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 6, z: 0 });
-                    gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
-                    gsap.to(safetyGroup.position, { ...config, y: 1.0 });
-                    gsap.to(plungerGroup.position, { ...config, y: 0 });
-                    gsap.to(diluent.position, { ...config, y: -1.2 });
-                    gsap.to(midStopper1.position, { ...config, y: 0.4 });
-                    gsap.to(midStopper2.position, { ...config, y: 0.9 });
-                    gsap.to(drugCake.scale, { ...config, y: 1, x: 1, z: 1 });
-                    gsap.to(drugCake.position, { ...config, y: 2.5 });
-                    stepTimeouts.push(setTimeout(() => document.getElementById('anno-diluent').classList.add('visible'), 600));
-
-                } else if (stepNum === 6) {
                     gsap.to(camera.position, { ...config, x: 0, y: 0.5, z: 24 });
                     gsap.to(syringeGroup.rotation, { ...config, x: 0, y: -Math.PI / 6, z: 0 });
                     gsap.to(syringeGroup.position, { ...config, x: 0, y: baseY });
@@ -857,7 +832,7 @@
                     gsap.to(drugCake.position, { ...config, y: 2.5 });
                     stepTimeouts.push(setTimeout(() => document.getElementById('anno-dual').classList.add('visible'), 600));
 
-                } else if (stepNum === 7) {
+                } else if (stepNum === 6) {
                     gsap.to(camera.position, { ...config, x: 0, y: -4, z: 24 });
                     gsap.to(syringeGroup.rotation, { ...config, x: 0, y: 0, z: 0 });
                     
