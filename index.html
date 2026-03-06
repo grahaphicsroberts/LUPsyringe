@@ -169,8 +169,8 @@
         .schematic-label.right { flex-direction: row; transform: translate(0%, -50%); }
         .schematic-label.bottom { flex-direction: column; transform: translate(-50%, 0%); }
         
-        .schematic-label.left::before { content: ''; width: 50px; height: 1px; background: #6a1c3a; margin-left: 10px; }
-        .schematic-label.right::before { content: ''; width: 50px; height: 1px; background: #6a1c3a; margin-right: 10px; }
+        .schematic-label.left::before { content: ''; width: 70px; height: 1px; background: #6a1c3a; margin-left: 10px; }
+        .schematic-label.right::before { content: ''; width: 70px; height: 1px; background: #6a1c3a; margin-right: 10px; }
         .schematic-label.bottom::before { content: ''; width: 1px; height: 50px; background: #6a1c3a; margin-bottom: 10px; }
 
         .schematic-label span {
@@ -659,15 +659,16 @@
         }
         
         if (syringeGroup.visible) {
-            updateLabelPosition(needle, 'label-needle');
-            updateLabelPosition(safetyGroup, 'label-safety', -0.5); 
-            updateLabelPosition(frontStopper, 'label-front-stopper');
-            updateLabelPosition(barrel, 'label-barrel', 2); 
-            updateLabelPosition(drugCake, 'label-powder');
-            updateLabelPosition(midStopper1, 'label-mid-stoppers', 0.25); 
-            updateLabelPosition(endStopper, 'label-end-stopper');
-            updateLabelPosition(rod, 'label-plunger', -1);
-            updateLabelPosition(thumb, 'label-finger-grip');
+            updateLabelPosition(needle, 'label-needle', 0.5);
+            updateLabelPosition(frontStopper, 'label-front-stopper', 0.2);
+            updateLabelPosition(drugCake, 'label-powder', -0.8);
+            updateLabelPosition(rod, 'label-plunger', 0);
+            
+            updateLabelPosition(barrel, 'label-barrel', 3.2); 
+            updateLabelPosition(safetyGroup, 'label-safety', 0.5); 
+            updateLabelPosition(midStopper1, 'label-mid-stoppers', -1.2); 
+            updateLabelPosition(endStopper, 'label-end-stopper', 0);
+            updateLabelPosition(thumb, 'label-finger-grip', 0);
         }
         if (microScene.visible) {
             updateLabelPosition(blobGroup, 'label-microsphere', -2.5);
