@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lupron Depot Syringe - Micro World & Nav Fix</title>
+    <title>LUPRON DEPOT Syringe - Micro World & Nav Fix</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -281,8 +281,8 @@
         <div class="model-card" id="model-container">
             
             <div class="viewport-header" id="main-header">
-                <h2>STREAMLINED DELIVERY SYSTEM</h2>
-                <p>The Lupron Depot prefilled dual-chamber syringe with safety lock is the preferred ADT delivery system, as it reduces mixing errors and administration complexities compared with other ADT injectables.</p>
+                <h2>DELIVERY DESIGNED TO SUPPORT CONSISTENT PERFORMANCE</h2>
+                <p>To help support the consistent control delivered by ADT therapy, the LUPRON DEPOT URO dual‑chamber syringe simplifies preparation and reduces mixing errors compared with other ADT injectables.</p>
             </div>
 
             <canvas id="webgl-canvas"></canvas>
@@ -312,8 +312,8 @@
         
         <div class="text-block" id="step-1">
             <div class="content-box">
-                <span class="block-label">Lupron Depot Prefilled Dual-Chamber Syringe</span>
-                <p>An interactive exploration of Lupron Depot's proprietary delivery system.</p>
+                <span class="block-label">LUPRON DEPOT Prefilled Dual-Chamber Syringe</span>
+                <p>An interactive exploration of LUPRON DEPOT's proprietary delivery system.</p>
                 <div class="scroll-prompt">
                     Scroll to continue
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
@@ -423,7 +423,7 @@
     ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'; ctx.fillRect(0, 106, 512, 150); 
     ctx.fillStyle = '#fff'; ctx.font = 'bold 36px Arial'; ctx.fillText('30 mg', 20, 50);
     ctx.font = '24px Arial'; ctx.fillText('for 4-month administration', 130, 50);
-    ctx.fillStyle = '#333'; ctx.font = 'bold 38px Arial'; ctx.fillText('Lupron Depot®', 20, 160);
+    ctx.fillStyle = '#333'; ctx.font = 'bold 38px Arial'; ctx.fillText('LUPRON DEPOT®', 20, 160);
     ctx.font = '28px Arial'; ctx.fillText('(leuprolide acetate', 20, 200);
     ctx.fillText('for depot suspension)', 20, 230);
     
@@ -748,8 +748,8 @@
         const schematicLabels = document.querySelectorAll('.schematic-label');
         
         if (stepNum >= 7) {
-            headerH2.innerText = "Lyophilized Microsphere Technology";
-            headerP.innerText = "LUPRON DEPOT URO is the only aPC for advanced prostate cancer that uses lyophilized microsphere technology to control the release of leuprolide acetate for deep, sustained testosterone suppression. The active drug is embedded in biodegradable polymer microcapsules that regulate dissolution and help prevent rapid clearance.";
+            // headerH2.innerText = "Lyophilized Microsphere Technology";
+            // headerP.innerText = "LUPRON DEPOT URO is the only aPC for advanced prostate cancer that uses lyophilized microsphere technology to control the release of leuprolide acetate for deep, sustained testosterone suppression. The active drug is embedded in biodegradable polymer microcapsules that regulate dissolution and help prevent rapid clearance.";
             
             if (currentPhase === 'macro') {
                 gsap.to(camera.position, { duration: 1.0, x: 0, y: 7.5, z: 2, ease: "power2.in", onComplete: () => {
@@ -766,8 +766,8 @@
                 stepTimeouts.push(setTimeout(() => document.getElementById('label-microsphere').classList.add('show'), 100));
             }
         } else {
-            headerH2.innerText = "STREAMLINED DELIVERY SYSTEM";
-            headerP.innerText = "The LUPRON DEPOT URO prefilled dual-chamber syringe with safety lock is the preferred ADT delivery system, as it reduces mixing errors and administration complexities compared with other ADT injectables.";
+            headerH2.innerText = "DELIVERY DESIGNED TO SUPPORT CONSISTENT PERFORMANCE";
+            headerP.innerText = "To help support the consistent control delivered by ADT therapy, the LUPRON DEPOT URO dual‑chamber syringe simplifies preparation and reduces mixing errors compared with other ADT injectables.";
             
             if (currentPhase === 'micro') {
                 microScene.visible = false;
